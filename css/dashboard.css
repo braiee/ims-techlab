@@ -71,12 +71,11 @@ body {
     height: 65px;
 }
 
-/* Greeting */
+
 .greeting {
-    margin-right: auto;
     font-size: 18px;
     font-weight: bold;
-    margin-left: 20px; /* Add left margin */
+    margin-right: 20px; /* Add right margin */
 }
 
 .header-box-content {
@@ -107,7 +106,53 @@ body {
 }
 
 /* Main Content */
+/* Greeting */
+.greeting {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px; /* Adjust spacing between greeting and cards */
+}
+
+/* Main Content */
 .main-content {
+    margin-left: 250px;
+    margin-top: 85px; /* Adjust margin to accommodate the header box */
+    margin-right: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Adjust container width */
+.card-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow cards to wrap onto the next line */
+    justify-content: space-around; /* Distribute space evenly between cards */
+    gap: 20px; /* Add gap between cards */
+    margin-top: 20px; /* Add some top margin */
+    padding: 0 20px; /* Add horizontal padding to the container */
+    box-sizing: border-box; /* Include padding in the container width */
+width: 900px;
+}
+
+/* Adjust card width for one row */
+.card {
+    background-color: #C7E8CA;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(35% - 40px); /* Each card takes up 1/3 of the container width with gap */
+    box-sizing: border-box;
+    transition: transform 0.2s;
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+/* Adjust card width for one row */
+.card:last-child {
+    margin-right: 0; /* Remove right margin from the last card to prevent extra spacing */
+}
+
+
+.main-ticket {
     margin-left: 250px;
     margin-top: 50px; /* Adjust margin to reduce space from the top */
     margin-bottom: 50px; /* Adjust margin to reduce space from the bottom */
@@ -122,17 +167,6 @@ body {
     box-sizing: border-box;
 }
 
-.card {
-    background-color: #C7E8CA;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    width: calc(33.333% - 40px); /* Three cards per row with 20px gap */
-    box-sizing: border-box;
-    transition: transform 0.2s;
-    cursor: pointer; /* Change cursor to pointer on hover */
-
-}
 
 .card h3 {
     margin-top: 0;
@@ -148,82 +182,31 @@ body {
     transform: translateY(-5px); /* Slight lift effect on hover */
 }
 
-/* Modal */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+#ticketTable th, #ticketTable td {
+    padding: 12px 15px;
+    border: 1px solid #ddd;
 }
 
-/* Modal Content */
-.modal-content {
-    background-color: #DDF7E3;
-    margin: 10% auto; /* 10% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+#ticketTable th {
+    background-color: #f4f4f4;
+    color: #333;
 }
 
-/* Close Button */
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+#ticketTable tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
+#ticketTable tr:hover {
+    background-color: #f1f1f1;
 }
 
-/* Style the table */
-.container table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.container th, .container td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.container th {
-    background-color: #f2f2f2;
-}
-
-.container tr:nth-child(even) {
-    background-color: #f2f2f2;
-}
-
-/* Style the search input */
 #searchInput {
-    width: 15%;
-    padding: 10px;
-    margin-bottom: 10px;
+    width: 17%;
+    padding: 12px 20px;
+    margin: 8px 0;
     box-sizing: border-box;
     border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 16px;
-    background-color: #fff;
-}
-
-/* Style the search input on focus */
-#searchInput:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    border-radius: 4px;
 }
 
 /* Logout Modal */
@@ -285,4 +268,5 @@ body {
     color: black;
     text-decoration: none;
 }
+
 

@@ -9,6 +9,7 @@ body {
     height: 100vh;
 }
 
+
 label {
     font-family: 'Josefin Sans', sans-serif;
 }
@@ -29,6 +30,8 @@ table {
     border-collapse: collapse;
 }
 
+
+
 th, td {
     padding: 8px;
     text-align: left;
@@ -45,7 +48,7 @@ tr:nth-child(even) {
 
 .assign-button {
     background-color: #DDF7E3;
-    color: #020302;
+    color: #5D9C59;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;

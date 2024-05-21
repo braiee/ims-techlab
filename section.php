@@ -45,8 +45,8 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/Dashboard.css">
-    <link rel="stylesheet" href="css/Ticket_Style.css">
+    <link rel="stylesheet" href="css/DashboarD.css">
+    <link rel="stylesheet" href="css/Ticket_style.css">
 
     <title>Boorw Item</title>
 </head>
@@ -56,8 +56,11 @@ $result = $conn->query($sql);
 <div class="side-nav">
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="section.php" class="nav-item active    "><span class="icon-placeholder"></span>Section</a>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Category</a>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
-    <a href="ticketing.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
+    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
 </div>
 
 <!-- Header box container -->
@@ -79,7 +82,7 @@ $result = $conn->query($sql);
     </div>
 </div>
 
-<div class="main-ticket">
+<div class="main-content">
 
     <div class="container">
             <?php
