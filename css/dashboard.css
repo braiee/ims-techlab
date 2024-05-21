@@ -1,0 +1,288 @@
+/* Dashboard.css */
+
+body {
+    font-family: 'Josefin Sans', sans-serif;
+    background-color: #DDF7E3;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    box-sizing: border-box; /* Ensure padding and borders are included in element's total width and height */
+}
+
+
+
+/* Side Navigation */
+.side-nav {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #C7E8CA;
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling if content exceeds the height */
+    padding-top: 20px;
+    text-align: center; /* Center align items in the side navigation */
+}
+
+.side-nav .logo {
+    width: 200px; /* Adjust the width as necessary */
+    margin-bottom: 20px; /* Space between logo and the first link */
+}
+
+.side-nav .nav-item {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #5D9C59;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+.side-nav .nav-item:hover:not(.logo-link) {
+    background-color: #575757;
+}
+
+.side-nav .nav-item.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.side-nav .icon-placeholder {
+    width: 20px; /* Adjust the size as necessary */
+    height: 20px; /* Adjust the size as necessary */
+    background-color: transparent; /* Make it transparent or replace with an actual icon */
+    display: inline-block;
+    margin-right: 10px; /* Space between icon and text */
+}
+
+/* Header Box */
+.header-box {
+    margin-left: 250px;
+    padding: 15px;
+    background-color: #C7E8CA;
+    width: calc(100% - 250px);
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    height: 65px;
+}
+
+/* Greeting */
+.greeting {
+    margin-right: auto;
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 20px; /* Add left margin */
+}
+
+.header-box-content {
+    display: flex;
+    justify-content: flex-end; /* Adjust alignment since the logo is moved */
+    align-items: center;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    display: inline;
+    margin-left: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+}
+
+.nav-links a.active {
+    color: #4CAF50;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    margin-top: 50px; /* Adjust margin to reduce space from the top */
+    margin-bottom: 50px; /* Adjust margin to reduce space from the bottom */
+    margin-right: 20px;
+    padding: 20px;
+    flex-grow: 1; /* Allow main content to grow and occupy available space */
+    display: flex;
+    justify-content: center; /* Center align items horizontally */
+    align-items: center; /* Center align items vertically */
+    flex-wrap: wrap;
+    gap: 20px; /* Space between cards */
+    box-sizing: border-box;
+}
+
+.card {
+    background-color: #C7E8CA;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(33.333% - 40px); /* Three cards per row with 20px gap */
+    box-sizing: border-box;
+    transition: transform 0.2s;
+    cursor: pointer; /* Change cursor to pointer on hover */
+
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #5D9C59;
+}
+
+.card p {
+    color: #333;
+    
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+/* Modal */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: #DDF7E3;
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Style the table */
+.container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.container th, .container td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.container th {
+    background-color: #f2f2f2;
+}
+
+.container tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Style the search input */
+#searchInput {
+    width: 15%;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: #fff;
+}
+
+/* Style the search input on focus */
+#searchInput:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* Logout Modal */
+#logoutModal .modal-content {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    width: 300px;
+    max-width: 80%;
+    margin: 20% auto;
+}
+
+#logoutModal p {
+    margin-bottom: 20px;
+}
+
+#logoutModal .button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#logoutModal button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logoutModal #confirmLogout {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#logoutModal #cancelLogout {
+    background-color: #ddd;
+    color: #333;
+}
+
+#logoutModal #confirmLogout:hover {
+    background-color: #45a049;
+}
+
+#logoutModal #cancelLogout:hover {
+    background-color: #ccc;
+}
+
+#logoutModal .close {
+    color: #aaa;
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#logoutModal .close:hover,
+#logoutModal .close:focus {
+    color: black;
+    text-decoration: none;
+}
+
