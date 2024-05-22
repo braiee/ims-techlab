@@ -6,7 +6,7 @@ $results_per_page = 5;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $starting_limit_number = ($page-1) * $results_per_page;
 
-$sql = "SELECT ticket_id, task_name, description, due_date, status, assigned_to, date_created FROM ticketing_table LIMIT $starting_limit_number, $results_per_page";
+$sql = "SELECT ticket_id, task_name, description, status, assigned_to, date_created FROM ticketing_table LIMIT $starting_limit_number, $results_per_page";
 $result = $conn->query($sql);
 
 $tickets = [];

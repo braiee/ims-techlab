@@ -9,33 +9,59 @@ body {
     height: 100vh;
 }
 
-
 label {
     font-family: 'Josefin Sans', sans-serif;
 }
 
+/* Header styling */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #C7E8CA;
+}
+
+.header h2 {
+    margin: 0;
+}
+
 .container {
     width: 80%;
-    margin: 0 auto;
+    margin: 20px auto; /* Adjusted margin */
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    box-shadow: 0 0 46.7px rgba(0, 0, 0, 0.1); /* Adjust the blur here */
+    box-shadow: 0 0 46.7px rgba(0, 0, 0, 0.1);
     background-color: #C7E8CA;
+    overflow: auto; /* Hide overflow content */
+}
+
+/* Ensure that the table container doesn't affect the layout */
+.table-container {
+    max-height: 400px; /* Set a maximum height for the table container */
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* Style the table */
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed; /* Ensure consistent column widths */
 }
 
-
-
+/* Set fixed column widths for table cells */
 th, td {
     padding: 8px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    width: auto; /* Auto width */
+}
+
+/* Set specific width for each column */
+th:nth-child(1),
+td:nth-child(1) {
+    width: 5%; /* Adjust as needed */
 }
 
 th {
@@ -74,7 +100,6 @@ tr:nth-child(even) {
 .home-button:hover {
     background-color: #45a049;
 }
-
 
 /* The Modal (background) */
 .modal {
@@ -139,6 +164,9 @@ input[type="submit"] {
 input[type="submit"]:hover {
     background-color: #45a049;
 }
+
+
+
 
 @keyframes modal-drop {
     from {
