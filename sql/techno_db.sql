@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 20, 2024 at 05:11 AM
+-- Generation Time: May 22, 2024 at 03:06 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -20,26 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `techno_db`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `office_supplies`
---
-
-CREATE TABLE `office_supplies` (
-  `id` int(11) NOT NULL,
-  `Item_Code` varchar(50) NOT NULL,
-  `Description` varchar(100) NOT NULL,
-  `QTY` int(11) NOT NULL,
-  `EMEI` int(11) NOT NULL,
-  `S/N_BuildNum` int(11) NOT NULL,
-  `REF_RNSS` int(11) NOT NULL,
-  `Owner` varchar(100) NOT NULL,
-  `Custodian` varchar(100) NOT NULL,
-  `RNSS_Accountability` varchar(100) NOT NULL,
-  `Remarks` varchar(100) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -63,7 +43,14 @@ CREATE TABLE `ticketing_table` (
 --
 
 INSERT INTO `ticketing_table` (`id`, `ticket_id`, `task_name`, `description`, `due_date`, `status`, `assigned_to`, `date_created`) VALUES
-(466, 'TCKT002', 'Laptop', 'for service', '2024-05-16 13:30:00', 'Borrowed', 'Jermaine', '2024-05-16 07:26:30');
+(478, 'TCKT002', 'VR Goggles', 'qweqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 01:51:33'),
+(479, 'TCKT003', 'VR Goggles', 'qweqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:10:30'),
+(480, 'TCKT004', 'Drone', 'ewqeqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:10:35'),
+(481, 'TCKT005', 'VR Goggles', 'wqeqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:10:42'),
+(482, 'TCKT006', 'VR Goggles', 'wqewqeqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:10:49'),
+(483, 'TCKT007', 'VR Goggles', 'qweqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:15:07'),
+(484, 'TCKT008', 'VR Goggles', 'qweqwe', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:16:44'),
+(486, 'TCKT010', 'VR Goggles', 'qwqeqw', '0000-00-00 00:00:00', 'Borrowed', 'Jermaine', '2024-05-22 02:16:56');
 
 --
 -- Triggers `ticketing_table`
@@ -111,12 +98,6 @@ INSERT INTO `users` (`id`, `user_id`, `username`, `password`, `identity`) VALUES
 --
 
 --
--- Indexes for table `office_supplies`
---
-ALTER TABLE `office_supplies`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `ticketing_table`
 --
 ALTER TABLE `ticketing_table`
@@ -133,16 +114,10 @@ ALTER TABLE `users`
 --
 
 --
--- AUTO_INCREMENT for table `office_supplies`
---
-ALTER TABLE `office_supplies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `ticketing_table`
 --
 ALTER TABLE `ticketing_table`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=467;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=488;
 
 --
 -- AUTO_INCREMENT for table `users`
