@@ -1,0 +1,272 @@
+/* Dashboard.css */
+
+body {
+    font-family: 'Josefin Sans', sans-serif;
+    background-color: #DDF7E3;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    box-sizing: border-box; /* Ensure padding and borders are included in element's total width and height */
+}
+
+
+
+/* Side Navigation */
+.side-nav {
+    height: 100vh;
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #C7E8CA;
+    box-sizing: border-box;
+    overflow-y: auto; /* Allow scrolling if content exceeds the height */
+    padding-top: 20px;
+    text-align: center; /* Center align items in the side navigation */
+}
+
+.side-nav .logo {
+    width: 200px; /* Adjust the width as necessary */
+    margin-bottom: 20px; /* Space between logo and the first link */
+}
+
+.side-nav .nav-item {
+    padding: 15px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #5D9C59;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s ease; /* Smooth transition on hover */
+}
+
+.side-nav .nav-item:hover:not(.logo-link) {
+    background-color: #575757;
+}
+
+.side-nav .nav-item.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.side-nav .icon-placeholder {
+    width: 20px; /* Adjust the size as necessary */
+    height: 20px; /* Adjust the size as necessary */
+    background-color: transparent; /* Make it transparent or replace with an actual icon */
+    display: inline-block;
+    margin-right: 10px; /* Space between icon and text */
+}
+
+/* Header Box */
+.header-box {
+    margin-left: 250px;
+    padding: 15px;
+    background-color: #C7E8CA;
+    width: calc(100% - 250px);
+    position: fixed;
+    top: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    height: 65px;
+}
+
+
+.greeting {
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 20px; /* Add right margin */
+}
+
+.header-box-content {
+    display: flex;
+    justify-content: flex-end; /* Adjust alignment since the logo is moved */
+    align-items: center;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    display: inline;
+    margin-left: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+}
+
+.nav-links a.active {
+    color: #4CAF50;
+}
+
+/* Main Content */
+/* Greeting */
+.greeting {
+    margin-top: -50px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px; /* Adjust spacing between greeting and cards */
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 250px;
+    margin-top: 85px; /* Adjust margin to accommodate the header box */
+    margin-right: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Adjust container width */
+.card-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow cards to wrap onto the next line */
+    justify-content: space-around; /* Distribute space evenly between cards */
+    gap: 20px; /* Add gap between cards */
+    margin-top: 20px; /* Add some top margin */
+    padding: 0 20px; /* Add horizontal padding to the container */
+    box-sizing: border-box; /* Include padding in the container width */
+    width: 900px;
+    margin-left: 130px;
+}
+
+/* Adjust card width for one row */
+.card {
+    background-color: #C7E8CA;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(35% - 40px); /* Each card takes up 1/3 of the container width with gap */
+    box-sizing: border-box;
+    transition: transform 0.2s;
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+/* Adjust card width for one row */
+.card:last-child {
+    margin-right: 0; /* Remove right margin from the last card to prevent extra spacing */
+}
+
+
+.main-ticket {
+    margin-left: 250px;
+    margin-top: 50px; /* Adjust margin to reduce space from the top */
+    margin-bottom: 50px; /* Adjust margin to reduce space from the bottom */
+    margin-right: 20px;
+    padding: 20px;
+    flex-grow: 1; /* Allow main content to grow and occupy available space */
+    display: flex;
+    justify-content: center; /* Center align items horizontally */
+    align-items: center; /* Center align items vertically */
+    flex-wrap: wrap;
+    gap: 20px; /* Space between cards */
+    box-sizing: border-box;
+}
+
+
+.card h3 {
+    margin-top: 0;
+    color: #5D9C59;
+}
+
+.card p {
+    color: #333;
+    
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+#ticketTable th, #ticketTable td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+#ticketTable th {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+#ticketTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+
+
+#searchInput {
+    width: 17%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Logout Modal */
+#logoutModal .modal-content {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    width: 300px;
+    max-width: 80%;
+    margin: 20% auto;
+}
+
+#logoutModal p {
+    margin-bottom: 20px;
+}
+
+#logoutModal .button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#logoutModal button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logoutModal #confirmLogout {
+    background-color: #4CAF50;
+    color: white;
+}
+
+#logoutModal #cancelLogout {
+    background-color: #ddd;
+    color: #333;
+}
+
+#logoutModal #confirmLogout:hover {
+    background-color: #45a049;
+}
+
+#logoutModal #cancelLogout:hover {
+    background-color: #ccc;
+}
+
+#logoutModal .close {
+    color: #aaa;
+    float: right;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#logoutModal .close:hover,
+#logoutModal .close:focus {
+    color: black;
+    text-decoration: none;
+}
+
+

@@ -1,0 +1,111 @@
+/* main.css */
+
+body {
+    font-family: 'Josefin Sans', sans-serif;
+    background-color: #DDF7E3;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Additional styles for two-column layout */
+.container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 60%; /* Adjust width as needed */
+    margin: 0 auto;
+    background-color: #DDF7E3;
+    border-radius: 56px;
+    box-shadow: 0 0 46.7px rgba(0, 0, 0, 0.1);
+}
+
+.info-section, .login-section {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.info-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.info-section .logo {
+    width: 300px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;    max-width: 100%;
+    height: auto;
+}
+
+/* Login section styles */
+.login-section {
+    background-color: #DDF7E3;
+    border-top-right-radius: 56px;
+    border-bottom-right-radius: 56px;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-container h1 {
+    margin-bottom: 20px;
+    color: #5D9C59;
+}
+
+.form-container label {
+    display: block;
+    margin-bottom: 10px;
+    color: #5D9C59;
+}
+
+.form-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5D9C59;
+    border: none;
+    color: #DDF7E3;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-container .forgot-password-wrapper {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.form-container .forgot-password {
+    color: #5D9C59;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+.form-container .forgot-password:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: red;
+    text-align: center;
+    margin-bottom: 20px;
+}
