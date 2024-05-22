@@ -1,5 +1,5 @@
 <?php
-session_start(); // Start the session at the beginning of the file
+session_start();
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -17,19 +17,19 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/dashboarD.css">
+    <link rel="stylesheet" href="css/DashboaRd.css">
     <title>Dashboard</title>
     <style>
-        /* Hide the table section initially */
-        #tableSection {
-            display: none;
-        }
+    
     </style>
 </head>
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+    <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
     <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
@@ -40,13 +40,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <div class="header-box-content">
         <!-- Navigation links -->
         <ul class="nav-links">
-            <!-- Display greeting message -->
-            <?php
-            if (isset($_SESSION["user_id"])) {
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            }
-            ?>
+            <li><a href="logout.php">Logout</a></li>
         </ul>
     </div>
 </div>
@@ -77,59 +71,36 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
             <h3>User</h3>
             <p>View Table</p>
         </div>
+        <div class="card" onclick="toggleTableSection()">
+            <h3>Product</h3>
+            <p>View Table</p>
+        </div>
+        <div class="card" onclick="toggleTableSection()">
+            <h3>Borrow</h3>
+            <p>View Table</p>
+        </div>
+        <div class="card" onclick="toggleTableSection()">
+            <h3>User</h3>
+            <p>View Table</p>
+        </div>
     </div>
     
     <!-- Table Section -->
     <div id="tableSection">
-        <h2>Borrowed Item Tickets</h2>
+        <h2 style="color: #5D9C59">Borrowed Item Tickets</h2>
         <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for tickets...">
-        <?php
-        // Include database connection
-        include 'db-connect.php';
-
-        // SQL query to fetch ticket data
-        $sql = "SELECT ticket_id, task_name, description, due_date, status, assigned_to, date_created FROM ticketing_table";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            echo '<table id="ticketTable">';
-            echo '<thead>';
-            echo '<tr>';
-            echo '<th>Ticket ID</th>';
-            echo '<th>Item Borrowed</th>';
-            echo '<th>Purpose</th>';
-            echo '<th>Date Borrowed</th>';
-            echo '<th>Status</th>';
-            echo '<th>Borrowed By</th>';
-            echo '<th>Date Created</th>';
-            echo '</tr>';
-            echo '</thead>';
-            echo '<tbody>';
-
-            while($row = $result->fetch_assoc()) {
-                echo '<tr>';
-                echo '<td>' . $row["ticket_id"] . '</td>';
-                echo '<td>' . $row["task_name"] . '</td>';
-                echo '<td>' . $row["description"] . '</td>';
-                echo '<td>' . $row["due_date"] . '</td>';
-                echo '<td>' . $row["status"] . '</td>';
-                echo '<td>' . $row["assigned_to"] . '</td>';
-                echo '<td>' . $row["date_created"] . '</td>';
-                echo '</tr>';
-            }
-            echo '</tbody>';
-            echo '</table>';
-        } else {
-            echo "No tickets found.";
-        }
-        // Close connection
-        $conn->close();
-        ?>
+        <div id="tableContent"></div>
+        <div class="pagination" id="pagination"></div>
+        <br>
     </div>
 </div>
 
-<!-- JavaScript for toggling table visibility -->
+<!-- JavaScript for toggling table visibility and AJAX pagination -->
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchTickets(1);
+    });
+
     function toggleTableSection() {
         var tableSection = document.getElementById('tableSection');
         if (tableSection.style.display === "none") {
@@ -139,23 +110,58 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         }
     }
 
+    function fetchTickets(page) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'fetch_tickets.php?page=' + page, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                var response = JSON.parse(xhr.responseText);
+                renderTable(response.tickets);
+                renderPagination(response.total_pages, page);
+            }
+        };
+        xhr.send();
+    }
+
+    function renderTable(tickets) {
+        var tableContent = document.getElementById('tableContent');
+        var tableHtml = '<table id="ticketTable"><thead><tr><th>Ticket ID</th><th>Item Borrowed</th><th>Purpose</th><th>Date Borrowed</th><th>Status</th><th>Borrowed By</th><th>Date Created</th></tr></thead><tbody>';
+        for (var i = 0; i < tickets.length; i++) {
+            tableHtml += '<tr><td>' + tickets[i].ticket_id + '</td><td>' + tickets[i].task_name + '</td><td>' + tickets[i].description + '</td><td>' + tickets[i].due_date + '</td><td>' + tickets[i].status + '</td><td>' + tickets[i].assigned_to + '</td><td>' + tickets[i].date_created + '</td></tr>';
+        }
+        tableHtml += '</tbody></table>';
+        tableContent.innerHTML = tableHtml;
+    }
+
+    function renderPagination(totalPages, currentPage) {
+        var pagination = document.getElementById('pagination');
+        var paginationHtml = '';
+        for (var page = 1; page <= totalPages; page++) {
+            if (page == currentPage) {
+                paginationHtml += '<span>' + page + '</span> ';
+            } else {
+                paginationHtml += '<a href="#" onclick="fetchTickets(' + page + '); return false;">' + page + '</a> ';
+            }
+        }
+        pagination.innerHTML = paginationHtml;
+    }
+
     function searchTable() {
-        var input, filter, table, tr, td, i, txtValue;
+        var input, filter, table, tr, td, i, j, txtValue;
         input = document.getElementById("searchInput");
         filter = input.value.toUpperCase();
         table = document.getElementById("ticketTable");
         tr = table.getElementsByTagName("tr");
 
         for (i = 0; i < tr.length; i++) {
+            tr[i].style.display = "none";
             td = tr[i].getElementsByTagName("td");
-            for (var j = 0; j < td.length; j++) {
+            for (j = 0; j < td.length; j++) {
                 if (td[j]) {
                     txtValue = td[j].textContent || td[j].innerText;
                     if (txtValue.toUpperCase().indexOf(filter) > -1) {
                         tr[i].style.display = "";
                         break;
-                    } else {
-                        tr[i].style.display = "none";
                     }
                 }
             }

@@ -108,6 +108,7 @@ body {
 /* Main Content */
 /* Greeting */
 .greeting {
+    margin-top: -50px;
     font-size: 18px;
     font-weight: bold;
     margin-bottom: 20px; /* Adjust spacing between greeting and cards */
@@ -131,7 +132,8 @@ body {
     margin-top: 20px; /* Add some top margin */
     padding: 0 20px; /* Add horizontal padding to the container */
     box-sizing: border-box; /* Include padding in the container width */
-width: 900px;
+    width: 900px;
+    margin-left: 130px;
 }
 
 /* Adjust card width for one row */
@@ -184,7 +186,7 @@ width: 900px;
 
 #ticketTable th, #ticketTable td {
     padding: 12px 15px;
-    border: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
 }
 
 #ticketTable th {
@@ -196,9 +198,7 @@ width: 900px;
     background-color: #f9f9f9;
 }
 
-#ticketTable tr:hover {
-    background-color: #f1f1f1;
-}
+
 
 #searchInput {
     width: 17%;

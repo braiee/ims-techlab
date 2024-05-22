@@ -108,6 +108,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                 echo '<th>Status</th>';
                 echo '<th>Borrowed By</th>';
                 echo '<th>Date Created</th>';
+                
                 echo '</tr>';
                 echo '</thead>';
                 echo '<tbody>';
@@ -116,6 +117,13 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                 while($row = $result->fetch_assoc()) {
                     echo '<tr>';
                     echo '<td>' . $row["ticket_id"] . '</td>';
+                    echo '<td>' . $row["task_name"] . '</td>';
+                    echo '<td>' . $row["description"] . '</td>';
+                    echo '<td>' . $row["due_date"] . '</td>';
+                    echo '<td>' . $row["status"] . '</td>';
+                    echo '<td>' . $row["assigned_to"] . '</td>';
+                    echo '<td>' . $row["date_created"] . '</td>';
+                      echo '<td>' . $row["ticket_id"] . '</td>';
                     echo '<td>' . $row["task_name"] . '</td>';
                     echo '<td>' . $row["description"] . '</td>';
                     echo '<td>' . $row["due_date"] . '</td>';

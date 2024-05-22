@@ -148,13 +148,13 @@ $result = $conn->query($sql);
                 </select>
 
                 <label for="description">Purpose:</label>
-                <input type="text" id="description" name="description" placeholder="Enter description">
+                <input type="text"  name="description" placeholder="Enter description" required>
                 <br>
                 <label for="due_date">Date Borrowed:</label>
                 <input type="datetime-local" id="due_date" name="due_date">
 
                 <label for="status">Status:</label>
-                <select id="status" name="status">
+                <select id="status" name="status" placeholder="Enter description">
                     <option value="Borrowed">Borrowed</option>
                     <option value="For Request">For request</option>
                     <option value="Returned">Returned</option>
