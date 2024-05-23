@@ -54,13 +54,15 @@ $result = $conn->query($sql);
 <!-- Side Navigation -->
 <div class="side-nav">
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="creativeTools.php" class="nav-item active"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Category</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
     <a href="logs.php" class="nav-item"><span class="icon-placeholder"></span>Logs</a>
-    <a href="user.php" class="nav-item"><span class="icon-placeholder"></span>User</a>
-    <a href="creativeTools.php" class="nav-item active"><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
+    <a href="officesupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
+
+    <a href="#user.php" class="nav-item"><span class="icon-placeholder"></span>User</a>
 </div>
 
 <!-- Header box container -->

@@ -32,6 +32,9 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Category</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
     <a href="logs.php" class="nav-item"><span class="icon-placeholder"></span>Logs</a>
+    <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
+    <a href="officesupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
+
     <a href="#user.php" class="nav-item"><span class="icon-placeholder"></span>User</a>
 </div>
 
