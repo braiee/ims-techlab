@@ -17,87 +17,10 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/DaShbOARd.css">
+    <link rel="stylesheet" href="css/DasHbOARd.css">
     <title>Dashboard</title>
     <style>
-          /* Hide the title and search bar by default */
-          #tableTitle, #searchInput {
-            display: none;
-        }
-        /* Styling for the modal */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgb(0,0,0); /* Fallback color */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            padding-top: 60px;
-            
-        }
-
-        /* Modal content */
-        .modal-content {
-            background-color: #C7E8CA;
-            margin: 5% auto; /* 15% from the top and centered */
-            padding: 20px;
-            width: 80%; /* Could be more or less, depending on screen size */
-
-        }
-
-        /* Close button */
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        #ticketTableModal {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 56px;
-        }
-
-        #ticketTableModal th,
-        #ticketTableModal td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        #ticketTableModal th {
-            background-color: #f2f2f2;
-        }
-
-        #ticketTableModal tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        #searchInputModal {
-            padding: 8px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            box-sizing: border-box;
-            width: 15%;
-        }
-
-           /* Style for no tickets found message */
-           #noTicketsFoundMessage {
-            display: none;
-            color: red;
-            font-weight: bold;
-        }
+        
     </style>
 </head>
 <body>
@@ -106,21 +29,20 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Legends</a>
-    <span class="non-clickable-item">Office</span> <!-- Non-clickable and unhoverable item -->
+    <span class="non-clickable-item">Office</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
-    <span class="non-clickable-item">Vendors</span> <!-- Non-clickable and unhoverable item -->
+    <span class="non-clickable-item">Vendors</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span> <!-- Non-clickable and unhoverable item -->
+    <span class="non-clickable-item">Summary</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
 </div>
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
         <ul class="nav-links">
             <li><a href="logout.php">Logout</a></li>
         </ul>
@@ -140,7 +62,6 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     
     <!-- Container for Cards -->
     <div class="card-container">
-        <!-- Cards with IDs for each section -->
         <div class="card" id="productCard" onclick="loadTableContent('Product')">
             <h3>Product</h3>
             <p>View Table</p>
@@ -194,10 +115,9 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     </div>
 </div>
 
-
 <!-- JavaScript for fetching table content and AJAX pagination -->
 <script>
- document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     // No automatic loading of tables on page load
 });
 
@@ -206,9 +126,11 @@ function loadTableContent(tableType) {
     var modalTitle = document.getElementById('modalTitle');
     modalTitle.textContent = tableType + ' Table';
     var searchInputModal = document.getElementById('searchInputModal');
-    searchInputModal.style.display = 'block'; // Show the search bar when loading a table
+    searchInputModal.style.display = 'block';
 
     fetchTicketsModal(1, tableType);
+    modal.classList.add('fade-in');
+    modal.classList.remove('fade-out');
     modal.style.display = "block";
 }
 
@@ -220,15 +142,16 @@ function fetchTicketsModal(page, tableType) {
             var response = JSON.parse(xhr.responseText);
             if (response.tickets.length > 0) {
                 renderTableModal(response.tickets);
-                document.getElementById('noTicketsMessage').style.display = 'none'; // Hide message if tickets found
+                document.getElementById('noTicketsMessage').style.display = 'none';
             } else {
-                document.getElementById('noTicketsMessage').style.display = 'block'; // Display message if no tickets found
-                document.getElementById('tableContentModal').innerHTML = ''; // Clear table content
+                document.getElementById('noTicketsMessage').style.display = 'block';
+                document.getElementById('tableContentModal').innerHTML = '';
             }
         }
     };
     xhr.send();
 }
+
 function renderTableModal(tickets) {
     var tableContentModal = document.getElementById('tableContentModal');
     var tableHtml = '<table id="ticketTableModal"><thead><tr><th>Ticket ID</th><th>Item Borrowed</th><th>Purpose</th><th>Status</th><th>Borrowed By</th><th>Date Borrowed</th></tr></thead><tbody>';
@@ -245,10 +168,10 @@ function searchTableModal() {
     filter = input.value.toUpperCase();
     table = document.getElementById("ticketTableModal");
     tr = table.getElementsByTagName("tr");
-    found = false; // Initialize found flag
+    found = false;
 
     for (i = 0; i < tr.length; i++) {
-        if (tr[i].getElementsByTagName("td").length > 0) { // Skip if it's a table heading row
+        if (tr[i].getElementsByTagName("td").length > 0) {
             td = tr[i].getElementsByTagName("td");
             for (j = 0; j < td.length; j++) {
                 if (td[j]) {
@@ -260,25 +183,29 @@ function searchTableModal() {
                 }
             }
             if (found) {
-                tr[i].style.display = ""; // Show row if match found
-                document.getElementById('noTicketsMessage').style.display = 'none'; // Hide message if match found
+                tr[i].style.display = "";
+                document.getElementById('noTicketsMessage').style.display = 'none';
             } else {
-                tr[i].style.display = "none"; // Hide row if no match found
+                tr[i].style.display = "none";
             }
         }
     }
 
     if (!found) {
-        document.getElementById('noTicketsMessage').style.display = 'block'; // Display message if no match found
+        document.getElementById('noTicketsMessage').style.display = 'block';
     }
 }
+
 function closeModal() {
     var modal = document.getElementById('myModal');
-    modal.style.display = "none";
+    modal.classList.add('fade-out');
+    modal.classList.remove('fade-in');
+
+    setTimeout(function() {
+        modal.style.display = "none";
+    }, 500);
 }
-
 </script>
-
 
 </body>
 </html>

@@ -49,9 +49,9 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/Dashboard.css">
-    <link rel="stylesheet" href="css/Ticket_StylE.css">
+    <link rel="stylesheet" href="css/Ticket_STylE.css">
 
-    <title>Boorw Item</title>
+    <title>Borrow Item</title>
 </head>
 
 <body>
@@ -60,13 +60,15 @@ $result = $conn->query($sql);
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="ticketing.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
-    <span class="non-clickable-item">Office</span> <!-- Non-clickable and unhoverable item -->
+    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Legends</a>
+    <span class="non-clickable-item">Office</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
-    <span class="non-clickable-item">Vendors</span> <!-- Non-clickable and unhoverable item -->
+    <span class="non-clickable-item">Vendors</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span> <!-- Non-clickable and unhoverable item -->
+    <span class="non-clickable-item">Summary</span>
     <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
 </div>
 
