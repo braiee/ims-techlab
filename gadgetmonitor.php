@@ -17,6 +17,7 @@ $errorMessage = "";
 
 // Fetch categories for dropdown
 $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
+$legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
 // Check if form is submitted (for deleting gadgets)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
@@ -38,9 +39,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 // SQL query to fetch gadget data
-$sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.qty, gm.emei, gm.sn, gm.ref_rnss, gm.owner, gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks 
+$sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.qty, gm.emei, gm.sn, gm.ref_rnss, gm.owner, gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks, gm.legends_id, l.legends_name
         FROM gadget_monitor gm 
-        LEFT JOIN categories c ON gm.categories_id = c.categories_id";
+        LEFT JOIN categories c ON gm.categories_id = c.categories_id
+        LEFT JOIN legends l ON gm.legends_id = l.legends_id";
+
 $result = $conn->query($sql);
 
 ?>
@@ -56,7 +59,6 @@ $result = $conn->query($sql);
 </head>
 
 <body>
-<!-- Side Navigation -->
 <!-- Side Navigation -->
 <div class="side-nav">
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
@@ -123,6 +125,8 @@ $result = $conn->query($sql);
             echo '<th>ID</th>';
             echo '<th>Name</th>';
             echo '<th>Category</th>';
+            echo '<th>Legends</th>';
+
             echo '<th>Color</th>';
             echo '<th>Quantity</th>';
             echo '<th>EMEI</th>';
@@ -144,8 +148,10 @@ $result = $conn->query($sql);
                 echo '<tr>';
                 echo '<td><input type="checkbox" name="gadget_ids[]" value="' . $row["gadget_id"] . '"></td>'; // Checkbox
                 echo '<td>' . $row["gadget_id"] . '</td>';
-                echo '<td>' . $row["gadget_name"] . '</td>';
+                echo '<td>'. $row["gadget_name"] . '</td>';
                 echo '<td>' . $row["categories_name"] . '</td>';
+                echo '<td>' . $row["legends_name"] . '</td>';
+
                 echo '<td>' . $row["color"] . '</td>';
                 echo '<td>' . $row["qty"] . '</td>';
                 echo '<td>' . $row["emei"] . '</td>';
@@ -189,6 +195,19 @@ $result = $conn->query($sql);
                 if ($categoriesResult->num_rows > 0) {
                     while($category = $categoriesResult->fetch_assoc()) {
                         echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
+                    }
+                }
+                ?>
+            </select>
+            <label for="legends_id">Legends:</label>
+            <select id="legends_id" name="legends_id" required>
+                <option value="">Select Legends</option>
+                <?php
+                // Reset legendsResult cursor
+                $legendsResult->data_seek(0);
+                if ($legendsResult->num_rows > 0) {
+                    while($legend = $legendsResult->fetch_assoc()) {
+                        echo '<option value="' . $legend["legends_id"] . '">' . $legend["legends_name"] . '</option>';
                     }
                 }
                 ?>
@@ -241,6 +260,21 @@ $result = $conn->query($sql);
                 }
                 ?>
             </select>
+
+            <label for="edit_legends_id">Legends:</label>
+            <select id="edit_legends_id" name="edit_legends_id" required>
+                <option value="">Select Legends</option>
+                <?php
+                // Reset legendsResult cursor
+                $legendsResult->data_seek(0);
+                if ($legendsResult->num_rows > 0) {
+                    while($legend = $legendsResult->fetch_assoc()) {
+                        echo '<option value="' . $legend["legends_id"] . '">' . $legend["legends_name"] . '</option>';
+                    }
+                }
+                ?>
+            </select>
+
             <label for="edit_color">Color:</label>
             <input type="text" id="edit_color" name="edit_color" placeholder="Enter color" required>
             <label for="edit_qty">Quantity:</label>
@@ -343,3 +377,5 @@ $result = $conn->query($sql);
 
 </body>
 </html>
+
+

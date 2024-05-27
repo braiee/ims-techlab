@@ -27,11 +27,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_office_supply'])) 
     $custodian = $_POST['custodian'];
     $rnss_acc = $_POST['rnss_acc'];
     $remarks = $_POST['remarks'];
+    // Retrieve categories and legends values from the form
+    $category_id = $_POST['categories'];
+    $legend_id = $_POST['legends'];
 
     // Prepare SQL statement for inserting data into office_supplies table
-    $sql = "INSERT INTO office_supplies (office_name, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks)
-            VALUES ('$office_name', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$remarks')";
-
+    $sql =  "INSERT INTO office_supplies (office_name, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks, categories_id, legends_id) VALUES ('$office_name', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$remarks', '$category_id', '$legend_id')";
+   
     // Execute SQL statement
     if ($conn->query($sql) === TRUE) {
         $successMessage = "New office supply added successfully.";
@@ -53,11 +55,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_office_supply']))
     $custodian = $_POST['edit_custodian'];
     $rnss_acc = $_POST['edit_rnss_acc'];
     $remarks = $_POST['edit_remarks'];
+    // Retrieve categories and legends values from the form
+    $category_id = $_POST['edit_categories'];
+    $legend_id = $_POST['edit_legends'];
 
     // Prepare SQL statement for updating data in office_supplies table
-    $sql = "UPDATE office_supplies 
-            SET office_name='$office_name', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', remarks='$remarks'
-            WHERE office_id='$office_id'";
+    $sql = "UPDATE office_supplies SET office_name='$office_name', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', remarks='$remarks', categories_id='$category_id', legends_id='$legend_id' WHERE office_id='$office_id'";
 
     // Execute SQL statement
     if ($conn->query($sql) === TRUE) {

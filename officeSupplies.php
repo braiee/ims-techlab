@@ -35,9 +35,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 // SQL query to fetch office supply data
-$sql = "SELECT office_id, office_name, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks FROM office_supplies";
+$sql = "SELECT office_supplies.office_id, office_supplies.office_name, office_supplies.qty, office_supplies.emei, office_supplies.sn, office_supplies.ref_rnss, office_supplies.owner, office_supplies.custodian, office_supplies.rnss_acc, office_supplies.remarks, categories.categories_name, legends.legends_name 
+FROM office_supplies 
+INNER JOIN categories ON office_supplies.categories_id = categories.categories_id 
+INNER JOIN legends ON office_supplies.legends_id = legends.legends_id";
 $result = $conn->query($sql);
 
+// SQL query to fetch categories
+$sql_categories = "SELECT * FROM categories";
+$result_categories = $conn->query($sql_categories);
+
+// SQL query to fetch legends
+$sql_legends = "SELECT * FROM legends";
+$result_legends = $conn->query($sql_legends);
 ?>
 
 <!DOCTYPE html>
@@ -116,6 +126,8 @@ $result = $conn->query($sql);
             echo '<th></th>'; // Checkbox column
             echo '<th>ID</th>';
             echo '<th>Name</th>';
+            echo '<th>Category</th>';
+            echo '<th>Legends</th>';
             echo '<th>Quantity</th>';
             echo '<th>EMEI</th>';
             echo '<th>SN</th>';
@@ -135,6 +147,8 @@ $result = $conn->query($sql);
                 echo '<td><input type="checkbox" name="office_ids[]" value="' . $row["office_id"] . '"></td>'; // Checkbox
                 echo '<td>' . $row["office_id"] . '</td>';
                 echo '<td>' . $row["office_name"] . '</td>';
+                echo '<td>' . $row["categories_name"] . '</td>';
+                echo '<td>' . $row["legends_name"] . '</td>';
                 echo '<td>' . $row["qty"] . '</td>';
                 echo '<td>' . $row["emei"] . '</td>';
                 echo '<td>' . $row["sn"] . '</td>';
@@ -149,46 +163,69 @@ $result = $conn->query($sql);
             echo '</tbody>';
             echo '</table>';
             echo '</form>';
-        } else {
-            echo "No office supplies found.";
-        }
-        $conn->close();
-        ?>
-        <!-- Button to open modal -->
-        <button class="assign-button" onclick="openModal()">Add Office Supply</button>
-    </div>
-</div>
+            } else {
+                echo "No office supplies found.";
+            }
+            $conn->close();
+            ?>
+            
+                <!-- Button to open modal -->
+                <button class="assign-button" onclick="openModal()">Add Office Supply</button>
+                </div>
+                
+                </div>
+                <!-- The Modal for Adding Office Supplies -->
+                <div id="assignModal" class="modal">
+                    <!-- Modal content -->
+                    <div class="modal-content">
+                        <span class="close" onclick="closeModal()">&times;</span>
+                        <h3>Add a New Office Supply</h3>
+                        <form action="crudOfficeSupplies.php" method="post">
+                            <label for="office_name">Office Supply Name:</label>
+                            <input type="text" id="office_name" name="office_name" placeholder="Enter office supply name" required>
+                            <label for="categories">Categories:</label>
+        <select id="categories" name="categories">
+            <?php
+            // Populate categories dropdown
+            if ($result_categories->num_rows > 0) {
+                while ($row = $result_categories->fetch_assoc()) {
+                    echo '<option value="' . $row["categories_id"] . '">' . $row["categories_name"] . '</option>';
+                }
+            }
+            ?>
+        </select>
 
-<!-- The Modal for Adding Office Supplies -->
-<div id="assignModal" class="modal">
-    <!-- Modal content -->
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h3>Add a New Office Supply</h3>
-        <form action="crudOfficeSupplies.php" method="post">
-            <label for="office_name">Office Supply Name:</label>
-            <input type="text" id="office_name" name="office_name" placeholder="Enter office supply name" required>
-            <label for="qty">Quantity:</label>
-            <input type="text" id="qty" name="qty" placeholder="Enter quantity" required>
-            <label for="emei">EMEI:</label>
-            <input type="text" id="emei" name="emei" placeholder="Enter EMEI" required>
-            <label for="sn">SN:</label>
-            <input type="text" id="sn" name="sn" placeholder="Enter serial number" required>
-            <label for="ref_rnss">Ref RNSS:</label>
-            <input type="text" id="ref_rnss" name="ref_rnss" placeholder="Enter ref RNSS" required>
-            <label for="owner">Owner:</label>
-            <input type="text" id="owner" name="owner" placeholder="Enter owner" required>
-            <label for="custodian">Custodian:</label>
-            <input type="text" id="custodian" name="custodian" placeholder="Enter custodian" required>
-            <label for="rnss_acc">RNSS Account:</label>
-            <input type="text" id="rnss_acc" name="rnss_acc" placeholder="Enter RNSS account" required>
-            <label for="remarks">Remarks:</label>
-            <textarea id="remarks" name="remarks" placeholder="Enter remarks" required></textarea>
-            <input type="submit" class="assign-button" value="Add Office Supply" name="add_office_supply">
-        </form>
-    </div>
+        <label for="legends">Legends:</label>
+        <select id="legends" name="legends">
+            <?php
+            // Populate legends dropdown
+            if ($result_legends->num_rows > 0) {
+                while ($row = $result_legends->fetch_assoc()) {
+                    echo '<option value="' . $row["legends_id"] . '">' . $row["legends_name"] . '</option>';
+                }
+            }
+            ?>
+        </select>
+        <label for="qty">Quantity:</label>
+        <input type="text" id="qty" name="qty" placeholder="Enter quantity" required>
+        <label for="emei">EMEI:</label>
+        <input type="text" id="emei" name="emei" placeholder="Enter EMEI" required>
+        <label for="sn">SN:</label>
+        <input type="text" id="sn" name="sn" placeholder="Enter serial number" required>
+        <label for="ref_rnss">Ref RNSS:</label>
+        <input type="text" id="ref_rnss" name="ref_rnss" placeholder="Enter ref RNSS" required>
+        <label for="owner">Owner:</label>
+        <input type="text" id="owner" name="owner" placeholder="Enter owner" required>
+        <label for="custodian">Custodian:</label>
+        <input type="text" id="custodian" name="custodian" placeholder="Enter custodian" required>
+        <label for="rnss_acc">RNSS Account:</label>
+        <input type="text" id="rnss_acc" name="rnss_acc" placeholder="Enter RNSS account" required>
+        <label for="remarks">Remarks:</label>
+        <textarea id="remarks" name="remarks" placeholder="Enter remarks" required></textarea>
+        <input type="submit" class="assign-button" value="Add Office Supply" name="add_office_supply">
+    </form>
 </div>
-
+</div>
 <!-- Modal for Editing Office Supplies -->
 <div id="editModal" class="modal">
     <!-- Modal content -->
@@ -199,28 +236,50 @@ $result = $conn->query($sql);
             <input type="hidden" id="edit_office_id" name="edit_office_id">
             <label for="edit_office_name">Office Supply Name:</label>
             <input type="text" id="edit_office_name" name="edit_office_name" placeholder="Enter office supply name" required>
-            <label for="edit_qty">Quantity:</label>
-            <input type="text" id="edit_qty" name="edit_qty" placeholder="Enter quantity" required>
-            <label for="edit_emei">EMEI:</label>
-            <input type="text" id="edit_emei" name="edit_emei" placeholder="Enter EMEI" required>
-            <label for="edit_sn">SN:</label>
-            <input type="text" id="edit_sn" name="edit_sn" placeholder="Enter serial number" required>
-            <label for="edit_ref_rnss">Ref RNSS:</label>
-            <input type="text" id="edit_ref_rnss" name="edit_ref_rnss" placeholder="Enter ref RNSS" required>
-            <label for="edit_owner">Owner:</label>
-            <input type="text" id="edit_owner" name="edit_owner" placeholder="Enter owner" required>
-            <label for="edit_custodian">Custodian:</label>
-            <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" required>
-            <label for="edit_rnss_acc">RNSS Account:</label>
-            <input type="text" id="edit_rnss_acc" name="edit_rnss_acc" placeholder="Enter RNSS account" required>
-            <label for="edit_remarks">Remarks:</label>
-            <div> </div>
-            <textarea id="edit_remarks" name="edit_remarks" placeholder="Enter remarks" required></textarea>
-            <input type="submit" class="edit-button" value="Save Changes" name="edit_office_supply">
-        </form>
-    </div>
+            <label for="edit_categories">Categories:</label>
+            <select id="edit_categories" name="edit_categories">
+                <?php
+                // Populate categories dropdown for editing
+                if ($result_categories->num_rows > 0) {
+                    while ($row = $result_categories->fetch_assoc()) {
+                        echo '<option value="' . $row["categories_id"] . '">' . $row["categories_name"] . '</option>';
+                    }
+                }
+                ?>
+            </select>
+            <label for="edit_legends">Legends:</label>
+        <select id="edit_legends" name="edit_legends">
+            <?php
+            // Populate legends dropdown for editing
+            if ($result_legends->num_rows > 0) {
+                while ($row = $result_legends->fetch_assoc()) {
+                    echo '<option value="' . $row["legends_id"] . '">' . $row["legends_name"] . '</option>';
+                }
+            }
+            ?>
+        </select>
+
+        <label for="edit_qty">Quantity:</label>
+        <input type="text" id="edit_qty" name="edit_qty" placeholder="Enter quantity" required>
+        <label for="edit_emei">EMEI:</label>
+        <input type="text" id="edit_emei" name="edit_emei" placeholder="Enter EMEI" required>
+        <label for="edit_sn">SN:</label>
+        <input type="text" id="edit_sn" name="edit_sn" placeholder="Enter serial number" required>
+        <label for="edit_ref_rnss">Ref RNSS:</label>
+        <input type="text" id="edit_ref_rnss" name="edit_ref_rnss" placeholder="Enter ref RNSS" required>
+<label for="edit_owner">Owner:</label>
+<input type="text" id="edit_owner" name="edit_owner" placeholder="Enter owner" required>
+<label for="edit_custodian">Custodian:</label>
+<input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" required>
+<label for="edit_rnss_acc">RNSS Account:</label>
+<input type="text" id="edit_rnss_acc" name="edit_rnss_acc" placeholder="Enter RNSS account" required>
+<label for="edit_remarks">Remarks:</label>
+<textarea id="edit_remarks" name="edit_remarks" placeholder="Enter remarks" required></textarea>
+<input type="submit" class="edit-button" value="Save Changes" name="edit_office_supply">
+</form>
 </div>
 
+</div>
 <!-- JavaScript for modal functionality -->
 <script>
     // Get the modals
@@ -279,6 +338,5 @@ $result = $conn->query($sql);
         editModal.style.display = "none";
     }
 </script>
-
 </body>
 </html>
