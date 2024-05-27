@@ -25,9 +25,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $purpose = $_POST['purpose'];
         $turnover_tsto = $_POST['turnover_tsto'];
         $return_vendor = $_POST['return_vendor'];
+        $categories_id = $_POST['categories_id'];
+        $legends_id = $_POST['legends_id'];
 
-        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor)
-                VALUES ('$item_name', '$vendor_name', '$contact_person', '$purpose', '$turnover_tsto', '$return_vendor')";
+        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id)
+                VALUES ('$item_name', '$vendor_name', '$contact_person', '$purpose', '$turnover_tsto', '$return_vendor', '$categories_id', '$legends_id')";
         if ($conn->query($sql) === TRUE) {
             $successMessage = "Vendor-owned item added successfully.";
         } else {
@@ -44,8 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $purpose = $_POST['edit_purpose'];
         $turnover_tsto = $_POST['edit_turnover_tsto'];
         $return_vendor = $_POST['edit_return_vendor'];
+        $categories_id = $_POST['edit_categories_id'];
+        $legends_id = $_POST['edit_legends_id'];
 
-        $sql = "UPDATE vendor_owned SET item_name='$item_name', vendor_name='$vendor_name', contact_person='$contact_person', purpose='$purpose', turnover_tsto='$turnover_tsto', return_vendor='$return_vendor' WHERE vendor_id='$vendor_id'";
+        $sql = "UPDATE vendor_owned SET item_name='$item_name', vendor_name='$vendor_name', contact_person='$contact_person', purpose='$purpose', turnover_tsto='$turnover_tsto', return_vendor='$return_vendor', categories_id='$categories_id', legends_id='$legends_id' WHERE vendor_id='$vendor_id'";
         if ($conn->query($sql) === TRUE) {
             $successMessage = "Vendor-owned item updated successfully.";
         } else {
@@ -70,12 +74,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// SQL query to fetch vendor-owned data
-$sql = "SELECT * FROM vendor_owned";
+// SQL query to fetch vendor-owned data with category and legend names
+$sql = "SELECT vendor_owned.*, categories.categories_name, legends.legends_name 
+        FROM vendor_owned 
+        LEFT JOIN categories ON vendor_owned.categories_id = categories.categories_id 
+        LEFT JOIN legends ON vendor_owned.legends_id = legends.legends_id";
+
 $result = $conn->query($sql);
+
+// Fetch categories data
+$sql_categories = "SELECT * FROM categories";
+$result_categories = $conn->query($sql_categories);
+
+// Fetch legends data
+$sql_legends = "SELECT * FROM legends";
+$result_legends = $conn->query($sql_legends);
 
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -143,6 +160,7 @@ $result = $conn->query($sql);
     </div>
 </div>
 
+
 <!-- Success and Error Modal -->
 <div id="messageModal" class="modal">
     <div class="modal-content">
@@ -167,12 +185,13 @@ $result = $conn->query($sql);
             echo '<input type="submit" name="delete_vendor_owned" value="Delete" class="btn-delete">';
             echo '</div>';
             echo '<table>';
-            
             echo '<thead>';
             echo '<tr>';
             echo '<th></th>'; // Checkbox column
             echo '<th>ID</th>';
             echo '<th>Item Name</th>';
+            echo '<th>Category</th>'; // Added Category column
+            echo '<th>Legend</th>'; // Added Legend column
             echo '<th>Vendor Name</th>';
             echo '<th>Contact Person</th>';
             echo '<th>Purpose</th>';
@@ -181,7 +200,7 @@ $result = $conn->query($sql);
             echo '<th>Edit</th>';
             echo '</tr>';
             echo '</thead>';
-            echo '<tbody>';
+            echo '<tbody>'; // Moved opening tag here
 
             // Output data of each row
             while($row = $result->fetch_assoc()) {
@@ -189,15 +208,18 @@ $result = $conn->query($sql);
                 echo '<td><input type="checkbox" name="vendor_ids[]" value="' . $row["vendor_id"] . '"></td>'; // Checkbox
                 echo '<td>' . $row["vendor_id"] . '</td>';
                 echo '<td>' . $row["item_name"] . '</td>';
+                echo '<td>' . $row["categories_name"] . '</td>'; // Display category name
+                echo '<td>' . $row["legends_name"] . '</td>'; // Display legend name
                 echo '<td>' . $row["vendor_name"] . '</td>';
                 echo '<td>' . $row["contact_person"] . '</td>';
-                echo '<td>' . $row["purpose"] . '</td>';
-                echo '<td>' . $row["turnover_tsto"] . '</td>';
-                echo '<td>' . $row["return_vendor"] . '</td>';
-                echo '<td><button type="button" class="btn-edit" onclick="openEditModal(' . $row["vendor_id"] . ', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\')">Edit</button></td>';
+                echo '<td>' . (isset($row["purpose"]) ? $row["purpose"] : '') . '</td>'; // Check if "purpose" key is set
+                echo '<td>' . (isset($row["turnover_tsto"]) ? $row["turnover_tsto"] : '') . '</td>'; // Check if "turnover_tsto" key is set
+                echo '<td>' . (isset($row["return_vendor"]) ? $row["return_vendor"] : '') . '</td>'; // Check if "return_vendor" key is set
+                echo '<td><button type="button" class="btn-edit" onclick="openEditModal(' . $row["vendor_id"] . ', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\')">Edit</button></td>';
                 echo '</tr>';
             }
-            echo '</tbody>';
+
+            echo '</tbody>'; // Moved closing tag here
             echo '</table>';
             echo '</form>';
         } else {
@@ -219,6 +241,28 @@ $result = $conn->query($sql);
         <form action="vendor_owned.php" method="post">
             <label for="item_name">Item Name:</label><br>
             <input type="text" id="item_name" name="item_name" required><br>
+            <label for="categories_id">Category:</label><br> <!-- Added Category label -->
+            <label for="categories_id">Category:</label><br>
+<select id="categories_id" name="categories_id">
+    <?php
+    // Reset the internal pointer of the result set
+    $result_categories->data_seek(0);
+    while($category = $result_categories->fetch_assoc()) {
+        echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
+    }
+    ?>
+</select><br>
+<label for="legends_id">Legend:</label><br>
+<select id="legends_id" name="legends_id">
+    <?php
+    // Reset the internal pointer of the result set
+    $result_legends->data_seek(0);
+    while($legend = $result_legends->fetch_assoc()) {
+        echo '<option value="' . $legend["legends_id"] . '">' . $legend["legends_name"] . '</option>';
+    }
+    ?>
+</select><br>
+
             <label for="vendor_name">Vendor Name:</label><br>
             <input type="text" id="vendor_name" name="vendor_name" required><br>
             <label for="contact_person">Contact Person:</label><br>
@@ -228,7 +272,8 @@ $result = $conn->query($sql);
             <label for="turnover_tsto">Turnover (TSTO):</label><br>
             <input type="date" id="turnover_tsto" name="turnover_tsto" required><br>
             <label for="return_vendor">Date of Return to Vendor:</label><br>
-            <input type="date" id="return_vendor" name="return_vendor"><br><br>
+            <input type="date" id="return_vendor" name="return_vendor"><br>
+
             <input type="submit" name="add_vendor_owned" value="Add" class="btn-add">
         </form>
     </div>
@@ -243,6 +288,27 @@ $result = $conn->query($sql);
             <input type="hidden" id="edit_vendor_id" name="edit_vendor_id">
             <label for="edit_item_name">Item Name:</label><br>
             <input type="text" id="edit_item_name" name="edit_item_name" required><br>
+            <label for="edit_categories_id">Category:</label><br>
+<select id="edit_categories_id" name="edit_categories_id">
+    <?php
+    // Reset the internal pointer of the result set
+    $result_categories->data_seek(0);
+    while($category = $result_categories->fetch_assoc()) {
+        echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
+    }
+    ?>
+</select><br>
+<label for="edit_legends_id">Legend:</label><br>
+<select id="edit_legends_id" name="edit_legends_id">
+    <?php
+    // Reset the internal pointer of the result set
+    $result_legends->data_seek(0);
+    while($legend = $result_legends->fetch_assoc()) {
+        echo '<option value="' . $legend["legends_id"] . '">' . $legend["legends_name"] . '</option>';
+    }
+    ?>
+</select><br>
+
             <label for="edit_vendor_name">Vendor Name:</label><br>
             <input type="text" id="edit_vendor_name" name="edit_vendor_name" required><br>
             <label for="edit_contact_person">Contact Person:</label><br>
@@ -252,7 +318,8 @@ $result = $conn->query($sql);
             <label for="edit_turnover_tsto">Turnover (TSTO):</label><br>
             <input type="date" id="edit_turnover_tsto" name="edit_turnover_tsto" required><br>
             <label for="edit_return_vendor">Date of Return to Vendor:</label><br>
-            <input type="date" id="edit_return_vendor" name="edit_return_vendor"><br><br>
+            <input type="date" id="edit_return_vendor" name="edit_return_vendor"><br>
+   
             <input type="submit" name="edit_vendor_owned" value="Save" class="btn-edit">
         </form>
     </div>
@@ -271,7 +338,7 @@ $result = $conn->query($sql);
     }
 
     // Show Edit Modal
-    function openEditModal(id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor) {
+    function openEditModal(id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id) {
         document.getElementById('edit_vendor_id').value = id;
         document.getElementById('edit_item_name').value = item_name;
         document.getElementById('edit_vendor_name').value = vendor_name;
@@ -279,6 +346,8 @@ $result = $conn->query($sql);
         document.getElementById('edit_purpose').value = purpose;
         document.getElementById('edit_turnover_tsto').value = turnover_tsto;
         document.getElementById('edit_return_vendor').value = return_vendor;
+        document.getElementById('edit_categories_id').value = categories_id; // Set Category value
+        document.getElementById('edit_legends_id').value = legends_id; // Set Legend value
         editModal.style.display = "block";
     }
 
@@ -301,4 +370,5 @@ $result = $conn->query($sql);
 
 </body>
 </html>
+
 
