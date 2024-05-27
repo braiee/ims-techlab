@@ -59,41 +59,43 @@ $result = $conn->query($sql);
 </head>
 
 <body>
-<!-- Side Navigation -->
-<div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
-    <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Vendor-Owned</a>
-    <span class="non-clickable-item">Office</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
-    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
-    <span class="non-clickable-item">Vendors</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
-</div>
-<!-- Header box container -->
-<div class="header-box">
-    <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
-            <!-- Display greeting message -->
-            <?php
-            if (isset($_SESSION["user_id"])) {
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            }
-            ?>
-        </ul>
+    <!-- Side Navigation -->
+    <div class="side-nav">
+        <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+        <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
+        <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+        <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
+        <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Vendor-Owned</a>
+        <span class="non-clickable-item">Office</span>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+        <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
+        <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
+        <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
+        <span class="non-clickable-item">Vendors</span>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
+        <span class="non-clickable-item">Summary</span>
+        <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+        <span class="non-clickable-item">Settings</span>
+        <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
     </div>
-</div>
 
+    <!-- Header box container -->
+    <div class="header-box">
+        <div class="header-box-content">
+            <!-- Navigation links -->
+            <ul class="nav-links">
+                <!-- Display greeting message -->
+                <?php
+                if (isset($_SESSION["user_id"])) {
+                    echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
+                    echo '<li><a href="logout.php">Logout</a></li>';
+                }
+                ?>
+            </ul>
+        </div>
+    </div>
 <!-- Success and Error Modal -->
 <div id="messageModal" class="modal">
     <div class="modal-content">

@@ -1,192 +1,177 @@
 <?php
-session_start(); // Start the session at the beginning of the file
+session_start();
+include 'db-connect.php'; // Include your database connection script
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // If not logged in, redirect to the login page
-    header("Location: login.php");
-    exit();
+// Initialize variables
+$filter = "";
+$search = "";
+
+// Check if filter is applied
+if (isset($_POST['filter'])) {
+    $filter = $_POST['filter'];
 }
 
-// Retrieve username from session if set
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
+// Check if search term is provided
+if (isset($_POST['search'])) {
+    $search = $_POST['search'];
+}
 
+// SQL query to fetch combined product data with filter and search
+$sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian
+        FROM (
+            SELECT 'Vendor Owned' AS source, item_name AS name, vendor_name AS owner, 
+                   categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, 
+                   NULL AS sn, contact_person AS custodian
+            FROM vendor_owned
+            UNION ALL
+            SELECT 'Office Supplies', office_name, owner, categories_id, NULL, NULL, 
+                   emei, sn, custodian
+            FROM office_supplies
+            UNION ALL
+            SELECT 'Gadget Monitor', gadget_name, owner, categories_id, NULL, color, 
+                   emei, sn, custodian
+            FROM gadget_monitor
+            UNION ALL
+            SELECT 'Creative Tools', creative_name, owner, categories_id, descriptions, 
+                   NULL, emei, sn, custodian
+            FROM creative_tools
+        ) AS combined_data";
+
+// Apply filter if selected
+if ($filter != "") {
+    $sql .= " WHERE source LIKE '%$filter%'";
+}
+
+// Apply search if provided
+if ($search != "") {
+    if ($filter != "") {
+        $sql .= " AND";
+    } else {
+        $sql .= " WHERE";
+    }
+    $sql .= " (name LIKE '%$search%' OR owner LIKE '%$search%' OR category LIKE '%$search%' OR descriptions LIKE '%$search%' OR color LIKE '%$search%' OR imei LIKE '%$search%' OR sn LIKE '%$search%' OR custodian LIKE '%$search%')";
+}
+
+$result = $conn->query($sql);
+
+// Check for errors
+if (!$result) {
+    die("Error: " . $conn->error);
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/DashboarD.css">
-    <title>Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/category.css">
+    <title>Manage Gadget Monitor</title>
 </head>
-
 <body>
-<!-- Side Navigation -->
-<div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-</div>
-
-<!-- Header box container -->
-<div class="header-box">
-    <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
-        <?php
-
-            // Check if the user is logged in
-            if (isset($_SESSION["user_id"])) {
-                // Display greeting message with username
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-            }
-            ?>
-            
-            <li><a href="section.php" class="nav-item">Section</a></li>
-            <li><a href="#" class="nav-item">Category</a></li>
-            <li><a href="#" class="nav-item">Legends</a></li>
-            <!-- Display greeting message -->
-        <li><a href="logout.php">Logout</a></li>
-
-
-        </ul>
+    <!-- Side Navigation -->
+    <div class="side-nav">
+        <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+        <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
+        <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+        <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
+        <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Vendor-Owned</a>
+        <span class="non-clickable-item">Office</span>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+        <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
+        <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
+        <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
+        <span class="non-clickable-item">Vendors</span>
+        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
+        <span class="non-clickable-item">Summary</span>
+        <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+        <span class="non-clickable-item">Settings</span>
+        <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
     </div>
-</div>
 
-
-<!-- Main Content -->
-<div class="main-content">
-    <div class="card" onclick="openModal()">
-        <h3>Section</h3>
-        <p>View Table</p>
-    </div>
-    <div class="card" onclick="openModal()">
-        <h3>Category</h3>
-        <p>View Table</p>
-    </div>
-    <div class="card" onclick="openModal()">
-        <h3>Legends</h3>
-        <p>View Table</p>
-    </div>
-    <div class="card" onclick="openModal()">
-        <h3>Product</h3>
-        <p>View Table</p>
-    </div>
-    <div class="card" onclick="openModal()">
-        <h3>Borrow</h3>
-        <p>View Table</p>
-    </div>
-</div>
-
-<!-- The Modal -->
-<div id="borrowModal" class="modal">
-    <!-- Modal content -->
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <div class="container">
-            <h2>Borrowed Item Tickets</h2>
-            <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search for tickets...">
-            <?php
-            // Include database connection
-            include 'db-connect.php';
-
-            // SQL query to fetch ticket data
-            $sql = "SELECT ticket_id, task_name, description, due_date, status, assigned_to, date_created FROM ticketing_table";
-            $result = $conn->query($sql);
-
-            if ($result->num_rows > 0) {
-                echo '<table id="ticketTable">';
-                echo '<thead>';
-                echo '<tr>';
-                echo '<th>Ticket ID</th>';
-                echo '<th>Item Borrowed</th>';
-                echo '<th>Purpose</th>';
-                echo '<th>Date Borrowed</th>';
-                echo '<th>Status</th>';
-                echo '<th>Borrowed By</th>';
-                echo '<th>Date Created</th>';
-                
-                echo '</tr>';
-                echo '</thead>';
-                echo '<tbody>';
-
-                // Output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo '<tr>';
-                    echo '<td>' . $row["ticket_id"] . '</td>';
-                    echo '<td>' . $row["task_name"] . '</td>';
-                    echo '<td>' . $row["description"] . '</td>';
-                    echo '<td>' . $row["due_date"] . '</td>';
-                    echo '<td>' . $row["status"] . '</td>';
-                    echo '<td>' . $row["assigned_to"] . '</td>';
-                    echo '<td>' . $row["date_created"] . '</td>';
-                      echo '<td>' . $row["ticket_id"] . '</td>';
-                    echo '<td>' . $row["task_name"] . '</td>';
-                    echo '<td>' . $row["description"] . '</td>';
-                    echo '<td>' . $row["due_date"] . '</td>';
-                    echo '<td>' . $row["status"] . '</td>';
-                    echo '<td>' . $row["assigned_to"] . '</td>';
-                    echo '<td>' . $row["date_created"] . '</td>';
-                    echo '</tr>';
+    <!-- Header box container -->
+    <div class="header-box">
+        <div class="header-box-content">
+            <!-- Navigation links -->
+            <ul class="nav-links">
+                <!-- Display greeting message -->
+                <?php
+                if (isset($_SESSION["user_id"])) {
+                    echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
+                    echo '<li><a href="logout.php">Logout</a></li>';
                 }
-                echo '</tbody>';
-                echo '</table>';
-            } else {
-                echo "No tickets found.";
-            }
-            // Close connection
-            $conn->close();
-            ?>
+                ?>
+            </ul>
         </div>
     </div>
+<div class="container">
+    <div class="search-filter-container">
+        <h1>Products</h1>
+        <form method="post" action="">
+            <label for="filter">Filter:</label>
+            <select name="filter" id="filter">
+                <option value="">All</option>
+                <option value="Vendor Owned">Vendor Owned</option>
+                <option value="Office Supplies">Office Supplies</option>
+                <option value="Gadget Monitor">Gadget Monitor</option>
+                <option value="Creative Tools">Creative Tools</option>
+            </select>
+            <input type="text" name="search" placeholder="Search...">
+            <button type="submit" class="apply-button">Apply</button>
+        </form>
+    </div>
+
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Color</th>
+                <th>IMEI</th>
+                <th>SN</th>
+                <th>Custodian</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["source"] . "</td>";
+                echo "<td>" . $row["name"] . "</td>";
+                echo "<td>" . $row["owner"] . "</td>";
+                echo "<td>" . $row["category"] . "</td>";
+                echo "<td>" . $row["descriptions"] . "</td>";
+                echo "<td>" . $row["color"] . "</td>";
+                echo "<td>" . $row["imei"] . "</td>";
+                echo "<td>" . $row["sn"] . "</td>";
+                echo "<td>" . $row["custodian"] . "</td>";
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
 </div>
 
-
-<!-- JavaScript for modal functionality -->
-<script>
-    // Get the modal
-    var modal = document.getElementById('borrowModal');
-
-    // When the user clicks the button, open the modal 
-    function openModal() {
-        modal.style.display = "block";
+<style>
+    .apply-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 20px;
+        cursor: pointer;
     }
 
-    // When the user clicks on <span> (x), close the modal
-    function closeModal() {
-        modal.style.display = "none";
+    .apply-button:hover {
+        background-color: #45a049;
     }
-
-    function searchTable() {
-    // Declare variables
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchInput");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("ticketTable");
-    tr = table.getElementsByTagName("tr");
-
-    // Loop through all table rows, and hide those who don't match the search query
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td");
-        for (var j = 0; j < td.length; j++) {
-            if (td[j]) {
-                txtValue = td[j].textContent || td[j].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                    break;
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-    }
-}
-
-
-</script>
+</style>
 
 </body>
 </html>
