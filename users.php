@@ -1,53 +1,26 @@
 <?php
-session_start();
+session_start(); // Start the session at the beginning of the file
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // If not logged in, redirect to the login page
+// Check if the user is logged in and is an admin
+if (!isset($_SESSION['user_id']) || $_SESSION['identity'] != 1) {
+    // If not logged in or not an admin, redirect to the login page or show an error message
     header("Location: login.php");
-    exit();
-}
-
-// Check if the user is an admin
-if ($_SESSION['identity'] != 1) {
-    // If not an admin, redirect to the dashboard or show an error message
-    // header("Location: dashboard.php");
-    // exit();
-    echo "You do not have permission to access this page.";
     exit();
 }
 
 // Include database connection
 include 'db-connect.php';
 
-// Initialize message variables
-$successMessage = "";
-$errorMessage = "";
-
 // Fetch users data
-$sql = "SELECT id, user_id, username, identity FROM users";
-$usersResult = $conn->query($sql);
+$sqlUsers = "SELECT id, user_id, username FROM users WHERE identity = 0"; // Regular users
+$regularUsersResult = $conn->query($sqlUsers);
 
-// Check if form is submitted (for changing user credentials)
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_credentials'])) {
-    // Handle change credentials action
-    // Get user ID and new credentials from the form
-    $user_id = $_POST['user_id'];
-    $new_username = $_POST['new_username'];
-    $new_password = $_POST['new_password'];
+$sqlAdmins = "SELECT id, user_id, username FROM users WHERE identity = 1"; // Admins
+$adminsResult = $conn->query($sqlAdmins);
 
-    // Hash the new password
-    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-
-    // Update the user's credentials in the database
-    $sql = "UPDATE users SET username='$new_username', password='$hashed_password' WHERE id='$user_id'";
-    if ($conn->query($sql) === TRUE) {
-        $successMessage = "User credentials updated successfully.";
-    } else {
-        $errorMessage = "Error updating user credentials: " . $conn->error;
-    }
-}
-
+// Initialize message variables
+$successMessage = isset($_GET['successMessage']) ? $_GET['successMessage'] : "";
+$errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
 ?>
 
 <!DOCTYPE html>
@@ -56,35 +29,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_credentials']))
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/category.css">
+    <style>
+        /* Additional CSS for modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        /* Modal content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 5% from the top, centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+        }
+
+        /* Close button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <!-- Side Navigation -->
-    <div class="side-nav">
-        <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-        <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
-        <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-        <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
-        <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Vendor-Owned</a>
-        <span class="non-clickable-item">Office</span>
-        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-        <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-        <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
-        <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
-        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
-        <span class="non-clickable-item">Vendors</span>
-        <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-        <span class="non-clickable-item">Summary</span>
-        <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
-        <?php
-        // Display settings link only for admin users
-        if ($_SESSION['username'] === 'admin') {
-            echo '<span class="non-clickable-item">Settings</span>';
-            echo '<a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>';
-        }
-        ?>
-    </div>
+<!-- Side Navigation -->
+<div class="side-nav">
+    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+    <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
+    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Vendor-Owned</a>
+    <span class="non-clickable-item">Office</span>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetmonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadget Monitor</a>
+    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Office Supplies</a>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
+    <span class="non-clickable-item">Vendors</span>
+    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <span class="non-clickable-item">Summary</span>
+    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+</div>
 
     <!-- Header box container -->
     <div class="header-box">
@@ -101,60 +109,186 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_credentials']))
             </ul>
         </div>
     </div>
-
-    <div class="container">
-        <h1>User Management</h1>
-        <div class="message-container">
-            <?php
-            if (!empty($successMessage)) {
-                echo '<div class="success-message">' . $successMessage . '</div>';
-            } elseif (!empty($errorMessage)) {
-                echo '<div class="error-message">' . $errorMessage . '</div>';
-            }
-            ?>
+</div>
+<div class="container">
+    <!-- Success and Error Messages -->
+    <?php if ($successMessage != ""): ?>
+        <div class="success-message"><?php echo $successMessage; ?></div>
+    <?php endif; ?>
+    <?php if ($errorMessage != ""): ?>
+        <div class="error-message"><?php echo $errorMessage; ?></div>
+    <?php endif; ?><!-- Regular Users Section -->
+<div class="user-container">
+    <div class="user-management">
+        <h1>Regular Users</h1>
+        <!-- Add User Button -->
+        <div class="add-user-btn">
+            <button id="addRegularUserBtn">Add User</button>
         </div>
+        <!-- Delete User Button -->
+        <button id="deleteUserBtn">Delete Selected Users</button>
+
+        <!-- Regular Users Table -->
         <table class="user-table">
+            <!-- Table Headings -->
+            <thead>
+                <tr>
+                    <th></th> <!-- Checkbox column -->
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <!-- Table Body -->
+            <tbody>
+                <?php
+                // Output data of each regular user
+                while ($user = $regularUsersResult->fetch_assoc()) {
+                    echo '<tr>';
+                    echo '<td><input type="checkbox" class="user-checkbox" value="' . $user["id"] . '"></td>';
+                    echo '<td>' . $user["user_id"] . '</td>';
+                    echo '<td>' . $user["username"] . '</td>';
+                    echo '<td><button class="edit-user-btn" data-user-id="' . $user["id"] . '">Edit</button></td>';
+                    echo '</tr>';
+                }
+                ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Admins Section -->
+<div class="user-container">
+    <div class="user-management">
+        <h1>Admins</h1>
+        <!-- Admins Table -->
+        <table class="user-table">
+            <!-- Table Headings -->
             <thead>
                 <tr>
                     <th>User ID</th>
                     <th>Username</th>
-                    <th>Role</th>
-                    <?php
-                    // Display action column only for admin users
-                    if ($_SESSION['username'] === 'admin') {
-                        echo '<th>Action</th>';
-                    }
-                    ?>
+                    <th>Actions</th>
                 </tr>
             </thead>
+            <!-- Table Body -->
             <tbody>
                 <?php
-                // Output data of each user
-                while($user = $usersResult->fetch_assoc()) {
+                // Output data of each admin
+                while ($admin = $adminsResult->fetch_assoc()) {
                     echo '<tr>';
-                    echo '<td>' . $user["user_id"] . '</td>';
-                    echo '<td>' . $user["username"] . '</td>';
-                    echo '<td>' . ($user["identity"] == 1 ? 'Admin' : 'Regular User') . '</td>';
-                    // Display action buttons only for admin users
-                    if ($_SESSION['username'] === 'admin') {
-                        echo '<td>';
-                        // Allow admin to change credentials of other users
-                        if ($user["id"] != $_SESSION['id']) {
-                            echo '<form action="" method="post">';
-                            echo '<input type="hidden" name="user_id" value="' . $user["id"] . '">';
-                            echo '<input type="text" name="new_username" placeholder="New Username">';
-                            echo '<input type="password" name="new_password" placeholder="New Password">';
-                            echo '<button type="submit" name="change_credentials">Change Credentials</button>';
-                            echo '</form>';
-                        }
-                        echo '</td>';
-                    }
+                    echo '<td>' . $admin["user_id"] . '</td>';
+                    echo '<td>' . $admin["username"] . '</td>';
+                    echo '<td><button class="edit-user-btn" data-user-id="' . $admin["id"] . '">Edit</button></td>';
                     echo '</tr>';
                 }
                 ?>
-                </tbody>
-                </table>
-                </div>
-                
-                </body>
-                </html>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Edit User</h2>
+        <form action="crudUsers.php" method="post">
+            <input type="hidden" id="edit_user_id" name="edit_user_id">
+            <label for="edit_username">New Username:</label>
+            <input type="text" id="edit_username" name="edit_username" placeholder="Enter new username" required>
+            <label for="edit_password">New Password:</label>
+            <input type="password" id="edit_password" name="edit_password" placeholder="Enter new password" required>
+            <button type="submit" name="edit_user_credentials">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add New User</h2>
+        <form action="crudUsers.php" method="post">
+            <label for="new_user_id">User ID:</label>
+            <input type="text" id="new_user_id" name="new_user_id" placeholder="Enter user ID" required>
+            <label for="new_user_username">Username:</label>
+            <input type="text" id="new_user_username" name="new_user_username" placeholder="Enter username" required>
+            <label for="new_user_password">Password:</label>
+            <input type="password" id="new_user_password" name="new_user_password" placeholder="Enter password" required>
+            <button type="submit" name="add_user">Add User</button>
+        </form>
+    </div>
+</div>
+
+<!-- Script to handle modal display -->
+<script>
+    // Display Edit User Modal
+    var editUserBtns = document.querySelectorAll('.edit-user-btn');
+    editUserBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var userId = this.getAttribute('data-user-id');
+            var modal = document.getElementById('editUserModal');
+            var userIdInput = modal.querySelector('#edit_user_id');
+            userIdInput.value = userId;
+            modal.style.display = "block";
+        });
+    });
+
+    // Display Add User Modal
+    var addUserBtn = document.getElementById('addRegularUserBtn');
+    addUserBtn.addEventListener('click', function () {
+        var modal = document.getElementById('addUserModal');
+        modal.style.display = "block";
+    });
+
+    // Get the delete button
+    var deleteUserBtn = document.getElementById('deleteUserBtn');
+
+    // Attach event listener for delete button
+    deleteUserBtn.addEventListener('click', function () {
+        var selectedUsers = document.querySelectorAll('.user-checkbox:checked');
+        var userIds = Array.from(selectedUsers).map(function (user) {
+            return user.value;
+        });
+
+        // If no users are selected, return
+        if (userIds.length === 0) {
+            return;
+        }
+
+        // Confirm deletion
+        var confirmDelete = confirm("Are you sure you want to delete the selected users?");
+        if (confirmDelete) {
+            // Redirect to the delete handler script with the selected user IDs
+            window.location.href = "crudUSers.php?action=delete&user_ids=" + userIds.join(',');
+        }
+    });
+
+    // Get the modal
+    var modals = document.getElementsByClassName('modal');
+
+    // Get the <span> element that closes the modal
+    var spans = document.getElementsByClassName("close");
+
+    // When the user clicks the <span> (x), close the modal
+    for (var i = 0; i < spans.length; i++) {
+        spans[i].onclick = function () {
+            for (var j = 0; j <modals.length; j++) {
+                    modals[j].style.display = "none";
+                }
+            }
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function (event) {
+            for (var i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
+

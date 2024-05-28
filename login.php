@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST["password"];
 
         // SQL query to check if the username exists
-        $sql = "SELECT id, user_id, username, password FROM users WHERE username = ?";
+        $sql = "SELECT id, user_id, username, password, identity FROM users WHERE username = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -26,23 +26,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows > 0) {
             // Username exists, now check the password
             $user = $result->fetch_assoc();
-            if ($user['password'] === $password) {
+            
+            // Debug: Print the stored hashed password
+            error_log("Stored Hashed Password: " . $user['password']);
+            error_log("Entered Password: " . $password);
+            
+            if (password_verify($password, $user['password'])) {
                 // Login successful, store user ID and username in session
                 $_SESSION["user_id"] = $user["user_id"];
                 $_SESSION["username"] = $user["username"];
-                header("Location: dashboard.php");
+                $_SESSION["identity"] = $user["identity"];
+                
+                // Redirect based on user identity
+                if ($user["identity"] == 1) {
+                    // Admin user
+                    header("Location: dashboard.php");
+                } else {
+                    // Regular user
+                    header("Location: user-dashboard.php");
+                }
                 exit();
             } else {
                 // Invalid password
                 $error = "Invalid password!";
+                error_log("Password verification failed.");
             }
         } else {
             // Username does not exist
             $error = "Account does not exist!";
+            error_log("No such username found.");
         }
     } else {
         // Username or password not set
         $error = "Please enter both username and password!";
+        error_log("Username or password not set.");
     }
 
     // Store error in session if there is an error

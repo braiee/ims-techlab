@@ -1,0 +1,75 @@
+/* styles.css */
+body {
+    font-family: Arial, sans-serif;
+}
+
+.side-nav {
+    width: 200px;
+    position: fixed;
+    height: 100%;
+    background-color: #111;
+    padding-top: 20px;
+}
+
+.side-nav a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #818181;
+    display: block;
+}
+
+.side-nav a:hover {
+    color: #f1f1f1;
+}
+
+.side-nav .logo-link img {
+    width: 100%;
+}
+
+.header-box {
+    margin-left: 200px;
+    padding: 15px;
+    background-color: #f1f1f1;
+}
+
+.header-box-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.container {
+    margin-left: 200px;
+    padding: 20px;
+}
+
+.message-container {
+    margin-bottom: 20px;
+}
+
+.success-message {
+    color: green;
+}
+
+.error-message {
+    color: red;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th, .user-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.user-table th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #4CAF50;
+    color: white;
+}
