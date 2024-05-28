@@ -17,25 +17,23 @@ if (isset($_POST['search'])) {
 }
 
 // SQL query to fetch combined product data with filter and search
-$sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian,
-               ref_rnss, rnss_acc, remarks, `condition`, purpose
+$sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian
         FROM (
             SELECT 'Vendor Owned' AS source, item_name AS name, vendor_name AS owner, 
                    categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, 
-                   NULL AS sn, contact_person AS custodian, NULL AS ref_rnss, NULL AS rnss_acc,
-                   NULL AS remarks, NULL AS `condition`, NULL AS purpose
+                   NULL AS sn, contact_person AS custodian
             FROM vendor_owned
             UNION ALL
             SELECT 'Office Supplies', office_name, owner, categories_id, NULL, NULL, 
-                   emei, sn, custodian, NULL, NULL, NULL, NULL, NULL
+                   emei, sn, custodian
             FROM office_supplies
             UNION ALL
             SELECT 'Gadget Monitor', gadget_name, owner, categories_id, NULL, color, 
-                   emei, sn, custodian, NULL, NULL, NULL, `condition`, purpose
+                   emei, sn, custodian
             FROM gadget_monitor
             UNION ALL
             SELECT 'Creative Tools', creative_name, owner, categories_id, descriptions, 
-                   NULL, emei, sn, custodian, ref_rnss, rnss_acc, remarks, NULL, NULL
+                   NULL, emei, sn, custodian
             FROM creative_tools
         ) AS combined_data";
 
@@ -108,82 +106,72 @@ if (!$result) {
             </ul>
         </div>
     </div>
-    <div class="container">
-        <div class="search-filter-container">
-            <h1>Products</h1>
-            <form method="post" action="">
-                <label for="filter">Filter:</label>
-                <select name="filter" id="filter">
-                    <option value="">All</option>
-                    <option value="Vendor Owned">Vendor Owned</option>
-                    <option value="Office Supplies">Office Supplies</option>
-                    <option value="Gadget Monitor">Gadget Monitor</option>
-                    <option value="Creative Tools">Creative Tools</option>
-                </select>
-                <input type="text" name="search" placeholder="Search...">
-                <button type="submit" class="apply-button">Apply</button>
-            </form>
-        </div>
-
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Source</th>
-                    <th>Name</th>
-                    <th>Owner</th>
-                    <th>Category</th>
-                    <th>Description</th>
-                    <th>Color</th>
-                    <th>IMEI</th>
-                    <th>SN</th>
-                    <th>Custodian</th>
-                    <th>Ref RNSS</th>
-                    <th>RNSS Acc</th>
-                    <th>Remarks</th>
-                    <th>Condition</th>
-                    <th>Purpose</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                // Output data of each row
-                while ($row = $result->fetch_assoc()) {
-                    echo "<tr>";
-                    echo "<td>" . $row["source"] . "</td>";
-                    echo "<td>" . $row["name"] . "</td>";
-                    echo "<td>" . $row["owner"] . "</td>";
-                    echo "<td>" . $row["category"] . "</td>";
-                    echo "<td>" . $row["descriptions"] . "</td>";
-                    echo "<td>" . $row["color"] . "</td>";
-                    echo "<td>" . $row["imei"] . "</td>";
-                    echo "<td>" . $row["sn"] . "</td>";
-                    echo "<td>" . $row["custodian"] . "</td>";
-                    echo "<td>" . $row["ref_rnss"] . "</td>";
-                    echo "<td>" . $row["rnss_acc"] . "</td>";
-                    echo "<td>" . $row["remarks"] . "</td>";
-                    echo "<td>" . $row["condition"] . "</td>";
-                    echo "<td>" . $row["purpose"] . "</td>";
-                    echo "</tr>";
-                }
-                ?>
-            </tbody>
-        </table>
+<div class="container">
+    <div class="search-filter-container">
+        <h1>Products</h1>
+        <form method="post" action="">
+            <label for="filter">Filter:</label>
+            <select name="filter" id="filter">
+                <option value="">All</option>
+                <option value="Vendor Owned">Vendor Owned</option>
+                <option value="Office Supplies">Office Supplies</option>
+                <option value="Gadget Monitor">Gadget Monitor</option>
+                <option value="Creative Tools">Creative Tools</option>
+            </select>
+            <input type="text" name="search" placeholder="Search...">
+            <button type="submit" class="apply-button">Apply</button>
+        </form>
     </div>
 
-    <style>
-        .apply-button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 20px;
-            cursor: pointer;
-        }
+    <table class="product-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Color</th>
+                <th>IMEI</th>
+                <th>SN</th>
+                <th>Custodian</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["source"] . "</td>";
+                echo "<td>" . $row["name"] . "</td>";
+                echo "<td>" . $row["owner"] . "</td>";
+                echo "<td>" . $row["category"] . "</td>";
+                echo "<td>" . $row["descriptions"] . "</td>";
+                echo "<td>" . $row["color"] . "</td>";
+                echo "<td>" . $row["imei"] . "</td>";
+                echo "<td>" . $row["sn"] . "</td>";
+                echo "<td>" . $row["custodian"] . "</td>";
+                echo "</tr>";
+            }
+            ?>
+        </tbody>
+    </table>
+</div>
 
-        .apply-button:hover {
-            background-color: #45a049;
-        }
-    </style>
+<style>
+    .apply-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 20px;
+        cursor: pointer;
+    }
+
+    .apply-button:hover {
+        background-color: #45a049;
+    }
+</style>
 
 </body>
 </html>
