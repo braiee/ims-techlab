@@ -1,0 +1,67 @@
+/* user-dashboard.css */
+
+body {
+    overflow: hidden;
+}
+
+/* user-dashboard.css */
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto; /* Adjust margin-top as needed */
+    overflow: auto;
+}
+
+
+.card-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.card {
+    width: 25%; /* Adjust as needed */
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    margin: 5px 0;
+}
+
+.table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures consistent column widths */
+}
+.product-table th,
+.product-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+    white-space: nowrap; /* Prevents wrapping of table content */
+}
+.search-filter-container {
+    margin-bottom: 20px;
+}
+
+.apply-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 20px;
+    cursor: pointer;
+}
+
+.apply-button:hover {
+    background-color: #45a049;
+}
