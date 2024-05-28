@@ -41,14 +41,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 // SQL query to fetch creative tool data
-$sql = "SELECT ct.creative_id, ct.creative_name, ct.qty, ct.emei, ct.sn, ct.ref_rnss, ct.owner, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.categories_id, ct.legends_id, c.categories_name, l.legends_name
+$sql = "SELECT ct.creative_id, ct.creative_name, ct.qty, ct.emei, ct.sn, ct.ref_rnss, ct.owner, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.categories_id, ct.legends_id, c.categories_name, l.legends_name, ct.status
         FROM creative_tools ct 
         LEFT JOIN categories c ON ct.categories_id = c.categories_id
         LEFT JOIN legends l ON ct.legends_id = l.legends_id";
 $result = $conn->query($sql);
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -139,39 +138,41 @@ $result = $conn->query($sql);
             echo '<th>RNSS Acc</th>';
             echo '<th>Remarks</th>';
             echo '<th>Descriptions</th>';
+            echo '<th>Status</th>'; // New column for status
             echo '<th>Action</th>'; // New column for actions
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
 
-// Output data of each row
-while ($row = $result->fetch_assoc()) {
-    echo '<tr>';
-    echo '<td><input type="checkbox" name="creative_ids[]" value="' . $row["creative_id"] . '"></td>'; // Checkbox
-    echo '<td>' . $row["creative_id"] . '</td>';
-    echo '<td>' . $row["creative_name"] . '</td>';
-    echo '<td>' . $row["categories_name"] . '</td>';
-    echo '<td>' . $row["legends_name"] . '</td>';
-    echo '<td>' . $row["qty"] . '</td>';
-    echo '<td>' . $row["emei"] . '</td>';
-    echo '<td>' . $row["sn"] . '</td>';
-    echo '<td>' . $row["ref_rnss"] . '</td>';
-    echo '<td>' . $row["owner"] . '</td>';
-    echo '<td>' . $row["custodian"] . '</td>';
-    echo '<td>' . $row["rnss_acc"] . '</td>';
-    echo '<td>' . $row["remarks"] . '</td>';
-    echo '<td>' . $row["descriptions"] . '</td>';
-    echo '<td><button class="edit-button" onclick="editCreativeTool(\'' . $row["creative_id"] . '\', \'' . $row["creative_name"] . '\', \'' . $row["qty"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["ref_rnss"] . '\', \'' . $row["owner"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["remarks"] . '\', \'' . $row["descriptions"] . '\')">Edit</button></td>';
-    echo '</tr>';
-}
-echo '</tbody>';
-echo '</table>';
-echo '</form>';
-} else {
-echo "No creative tools found.";
-}
-$conn->close();
-?>
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
+                echo '<tr>';
+                echo '<td><input type="checkbox" name="creative_ids[]" value="' . $row["creative_id"] . '"></td>'; // Checkbox
+                echo '<td>' . $row["creative_id"] . '</td>';
+                echo '<td>' . $row["creative_name"] . '</td>';
+                echo '<td>' . $row["categories_name"] . '</td>';
+                echo '<td>' . $row["legends_name"] . '</td>';
+                echo '<td>' . $row["qty"] . '</td>';
+                echo '<td>' . $row["emei"] . '</td>';
+                echo '<td>' . $row["sn"] . '</td>';
+                echo '<td>' . $row["ref_rnss"] . '</td>';
+                echo '<td>' . $row["owner"] . '</td>';
+                echo '<td>' . $row["custodian"] . '</td>';
+                echo '<td>' . $row["rnss_acc"] . '</td>';
+                echo '<td>' . $row["remarks"] . '</td>';
+                echo '<td>' . $row["descriptions"] . '</td>';
+                echo '<td>' . $row["status"] . '</td>'; // Status column
+                echo '<td><button class="edit-button" onclick="editCreativeTool(\'' . $row["creative_id"] . '\', \'' . $row["creative_name"] . '\', \'' . $row["qty"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["ref_rnss"] . '\', \'' . $row["owner"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["remarks"] . '\', \'' . $row["descriptions"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
+                echo '</tr>';
+            }
+            echo '</tbody>';
+            echo '</table>';
+            echo '</form>';
+        } else {
+            echo "No creative tools found.";
+        }
+        $conn->close();
+        ?>
 
                 <!-- Button to open modal -->
                 <button class="assign-button" onclick="openModal()">Add Creative Tool</button>
@@ -227,6 +228,14 @@ $conn->close();
                             <textarea id="remarks" name="remarks" placeholder="Enter remarks" required></textarea>
                             <label for="descriptions">Descriptions:</label>
                             <textarea id="descriptions" name="descriptions" placeholder="Enter descriptions" required></textarea>
+                            <label for="status">Status:</label>
+                            <label for="status">Status:</label>
+            <select id="status" name="status" required>
+                <option value="Available">Available</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Returned">Returned</option>
+            </select>
                             <input type="submit" class="assign-button" value="Add Creative Tool" name="add_creative_tool">
                         </form>
                     </div>
@@ -237,7 +246,7 @@ $conn->close();
                     <div class="modal-content">
                         <span class="close" onclick="closeEditModal()">&times;</span>
                         <h3>Edit Creative Tool</h3>
-                        <form action="crudCreativeTool.php" method="post">
+                        <form action="crudCreativeTools.php" method="post">
                             <input type="hidden" id="edit_creative_id" name="edit_creative_id">
                             <label for="edit_creative_name">Creative Tool Name:</label>
                             <input type="text" id="edit_creative_name" name="edit_creative_name" placeholder="Enter creative tool name" required>
@@ -283,6 +292,14 @@ $conn->close();
             <textarea id="edit_remarks" name="edit_remarks" placeholder="Enter remarks" required></textarea>
             <label for="edit_descriptions">Descriptions:</label>
             <textarea id="edit_descriptions" name="edit_descriptions" placeholder="Enter descriptions" required></textarea>
+            <label for="edit_status">Status:</label>
+            <select id="edit_status" name="edit_status" required>
+                <option value="Available">Available</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Returned">Returned</option>
+            </select>
+
             <input type="submit" class="assign-button" value="Update Creative Tool" name="update_creative_tool">
         </form>
     </div>

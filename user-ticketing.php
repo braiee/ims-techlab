@@ -77,50 +77,31 @@ $result = $conn->query($sql);
 </div>
 <!-- Rest of the HTML content -->
 
-    <div class="container">
-        <h1>Borrow Items</h1>
-        <form id="borrowForm">
-            <table class="borrow-table">
-                <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Item Name</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <!-- Add more table headers as needed -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Populate table rows with available items -->
-                    <tr>
-                        <td><input type="checkbox" name="itemCheckbox" value="itemID1"></td>
-                        <td>Item 1</td>
-                        <td>Category A</td>
-                        <td>Description 1</td>
-                        <!-- Add more table cells as needed -->
-                    </tr>
-                    <!-- Add more rows for other items -->
-                </tbody>
-            </table>
-        </form>
+    <<div class="container">
+        <h1>Pending Borrowing Requests</h1>
+        <table class="request-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Item Name</th>
+                    <th>Description</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                // Output pending requests
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . $row["user_name"] . "</td>";
+                    echo "<td>" . $row["item_name"] . "</td>";
+                    echo "<td>" . $row["description"] . "</td>";
+                    echo "<td><a href='approve-request.php?request_id=" . $row["id"] . "'>Approve</a></td>";
+                    echo "</tr>";
+                }
+                ?>
+            </tbody>
+        </table>
     </div>
-
-    <!-- Modal for entering borrowing details -->
-    <div id="borrowModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Enter Borrowing Details</h2>
-            <form id="borrowDetailsForm">
-                <!-- Form fields for entering borrowing details -->
-                <input type="hidden" id="selectedItemId" name="selectedItemId">
-                <label for="borrowerName">Your Name:</label>
-                <input type="text" id="borrowerName" name="borrowerName" required>
-                <!-- Add more form fields as needed -->
-                <button type="submit">Borrow</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Include JavaScript links here -->
 </body>
 </html>

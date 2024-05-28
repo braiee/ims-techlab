@@ -17,23 +17,27 @@ if (isset($_POST['search'])) {
 }
 
 // SQL query to fetch combined product data with filter and search
-$sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian
+$sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian, status
         FROM (
             SELECT 'Vendor Owned' AS source, item_name AS name, vendor_name AS owner, 
                    categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, 
-                   NULL AS sn, contact_person AS custodian
+                   NULL AS sn, contact_person AS custodian, 
+                   (SELECT status FROM borrowed_items WHERE vendor_owned.vendor_id = borrowed_items.office_id LIMIT 1) AS status
             FROM vendor_owned
             UNION ALL
             SELECT 'Office Supplies', office_name, owner, categories_id, NULL, NULL, 
-                   emei, sn, custodian
+                   emei, sn, custodian, 
+                   (SELECT status FROM borrowed_items WHERE office_supplies.office_id = borrowed_items.office_id LIMIT 1) AS status
             FROM office_supplies
             UNION ALL
             SELECT 'Gadget Monitor', gadget_name, owner, categories_id, NULL, color, 
-                   emei, sn, custodian
+                   emei, sn, custodian,
+                   (SELECT status FROM borrowed_items WHERE gadget_monitor.gadget_id = borrowed_items.gadget_id LIMIT 1) AS status
             FROM gadget_monitor
             UNION ALL
             SELECT 'Creative Tools', creative_name, owner, categories_id, descriptions, 
-                   NULL, emei, sn, custodian
+                   NULL, emei, sn, custodian,
+                   (SELECT status FROM borrowed_items WHERE creative_tools.creative_id = borrowed_items.creative_id LIMIT 1) AS status
             FROM creative_tools
         ) AS combined_data";
 
@@ -90,9 +94,7 @@ while ($row = $result->fetch_assoc()) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/category.css">
     <link rel="stylesheet" href="css/user-dashboard.css">
-
     <title>User Dashboard</title>
 </head>
 <body>
@@ -122,6 +124,7 @@ while ($row = $result->fetch_assoc()) {
     </div>
 
     <div class="container">
+        <!-- Card Containers for totals -->
         <div class="card-row">
             <div class="card">
                 <h2>Total Office Supplies: <?php echo $total_office_supplies; ?></h2>
@@ -140,22 +143,6 @@ while ($row = $result->fetch_assoc()) {
         </div>
 
         <div class="table-container">
-            <div class="search-filter-container">
-                <h1>Products</h1>
-                <form method="post" action="">
-                    <label for="filter">Filter:</label>
-                    <select name="filter" id="filter">
-                        <option value="">All</option>
-                        <option value="Vendor Owned">Vendor Owned</option>
-                        <option value="Office Supplies">Office Supplies</option>
-                        <option value="Gadget Monitor">Gadget Monitor</option>
-                        <option value="Creative Tools">Creative Tools</option>
-                    </select>
-                    <input type="text" name="search" placeholder="Search...">
-                    <button type="submit" class="apply-button">Apply</button>
-                </form>
-            </div>
-
             <table class="product-table">
                 <thead>
                     <tr>
@@ -168,6 +155,7 @@ while ($row = $result->fetch_assoc()) {
                         <th>IMEI</th>
                         <th>SN</th>
                         <th>Custodian</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,6 +173,7 @@ while ($row = $result->fetch_assoc()) {
                         echo "<td>" . $row["imei"] . "</td>";
                         echo "<td>" . $row["sn"] . "</td>";
                         echo "<td>" . $row["custodian"] . "</td>";
+                        echo "<td>" . ($row["status"] ? $row["status"] : 'Available') . "</td>";
                         echo "</tr>";
                     }
                     ?>
@@ -194,23 +183,11 @@ while ($row = $result->fetch_assoc()) {
     </div>
 
     <style>
-        .card-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .card {
-            width: 45%; /* Adjust as needed */
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .card h2 {
-            margin: 5px 0;
-        }
-        .table-container {
+        .total-container {
             margin-top: 20px;
+        }
+        .total-container h2 {
+            margin: 5px 0;
         }
     </style>
 </body>

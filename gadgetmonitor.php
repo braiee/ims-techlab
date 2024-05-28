@@ -39,10 +39,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 // SQL query to fetch gadget data
-$sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.qty, gm.emei, gm.sn, gm.ref_rnss, gm.owner, gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks, gm.legends_id, l.legends_name
+$sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.qty, gm.emei, gm.sn, gm.ref_rnss, gm.owner, gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks, gm.legends_id, l.legends_name, gm.status
         FROM gadget_monitor gm 
         LEFT JOIN categories c ON gm.categories_id = c.categories_id
         LEFT JOIN legends l ON gm.legends_id = l.legends_id";
+
 
 $result = $conn->query($sql);
 
@@ -140,6 +141,8 @@ $result = $conn->query($sql);
             echo '<th>Condition</th>';
             echo '<th>Purpose</th>';
             echo '<th>Remarks</th>';
+            echo '<th>Status</th>';
+
             echo '<th>Action</th>'; // New column for actions
             echo '</tr>';
             echo '</thead>';
@@ -165,6 +168,7 @@ $result = $conn->query($sql);
                 echo '<td>' . $row["condition"] . '</td>';
                 echo '<td>' . $row["purpose"] . '</td>';
                 echo '<td>' . $row["remarks"] . '</td>';
+                echo '<td>' . $row["status"] . '</td>'; // Display status
                 echo '<td><button class="edit-button" onclick="editGadget(' . $row["gadget_id"] . ', \'' . $row["gadget_name"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["color"] . '\', \'' . $row["qty"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["ref_rnss"] . '\', \'' . $row["owner"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["condition"] . '\', \'' . $row["purpose"] . '\', \'' . $row["remarks"] . '\')">Edit</button></td>';
                 echo '</tr>';
             }
@@ -236,6 +240,14 @@ $result = $conn->query($sql);
             <input type="text" id="purpose" name="purpose" placeholder="Enter purpose" required>
             <label for="remarks">Remarks:</label>
             <textarea id="remarks" name="remarks" placeholder="Enter remarks" required></textarea>
+            <label for="status">Status:</label>
+<select id="status" name="status" required>
+    <option value="Available">Available</option>
+    <option value="Pending">Pending</option>
+    <option value="Approved">Approved</option>
+    <option value="Returned">Returned</option>
+</select>
+
             <input type="submit" class="assign-button" value="Add Gadget" name="add_gadget">
         </form>
     </div>
@@ -299,6 +311,14 @@ $result = $conn->query($sql);
             <input type="text" id="edit_purpose" name="edit_purpose" placeholder="Enter purpose" required>
             <label for="edit_remarks">Remarks:</label>
             <textarea id="edit_remarks" name="edit_remarks" placeholder="Enter remarks" required></textarea>
+            <label for="edit_status">Status:</label>
+<select id="edit_status" name="edit_status" required>
+    <option value="Available">Available</option>
+    <option value="Pending">Pending</option>
+    <option value="Approved">Approved</option>
+    <option value="Returned">Returned</option>
+</select>
+
             <input type="submit" class="edit-button" value="Save Changes" name="edit_gadget">
         </form>
     </div>

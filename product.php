@@ -18,26 +18,27 @@ if (isset($_POST['search'])) {
 
 // SQL query to fetch combined product data with filter and search
 $sql = "SELECT source, name, owner, category, descriptions, color, imei, sn, custodian,
-               ref_rnss, rnss_acc, remarks, `condition`, purpose
+               ref_rnss, rnss_acc, remarks, `condition`, purpose, status
         FROM (
             SELECT 'Vendor Owned' AS source, item_name AS name, vendor_name AS owner, 
                    categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, 
                    NULL AS sn, contact_person AS custodian, NULL AS ref_rnss, NULL AS rnss_acc,
-                   NULL AS remarks, NULL AS `condition`, NULL AS purpose
+                   NULL AS remarks, NULL AS `condition`, NULL AS purpose, status
             FROM vendor_owned
             UNION ALL
             SELECT 'Office Supplies', office_name, owner, categories_id, NULL, NULL, 
-                   emei, sn, custodian, NULL, NULL, NULL, NULL, NULL
+                   emei, sn, custodian, NULL, NULL, NULL, NULL, NULL, status
             FROM office_supplies
             UNION ALL
             SELECT 'Gadget Monitor', gadget_name, owner, categories_id, NULL, color, 
-                   emei, sn, custodian, NULL, NULL, NULL, `condition`, purpose
+                   emei, sn, custodian, NULL, NULL, NULL, `condition`, purpose, status
             FROM gadget_monitor
             UNION ALL
             SELECT 'Creative Tools', creative_name, owner, categories_id, descriptions, 
-                   NULL, emei, sn, custodian, ref_rnss, rnss_acc, remarks, NULL, NULL
+                   NULL, emei, sn, custodian, ref_rnss, rnss_acc, remarks, NULL, NULL, status
             FROM creative_tools
         ) AS combined_data";
+
 
 // Apply filter if selected
 if ($filter != "") {
@@ -142,6 +143,7 @@ if (!$result) {
                     <th>Remarks</th>
                     <th>Condition</th>
                     <th>Purpose</th>
+                    <th>Status</th> <!-- New column for status -->
                 </tr>
             </thead>
             <tbody>
@@ -163,6 +165,8 @@ if (!$result) {
                     echo "<td>" . $row["remarks"] . "</td>";
                     echo "<td>" . $row["condition"] . "</td>";
                     echo "<td>" . $row["purpose"] . "</td>";
+                    echo "<td>" . $row["status"] . "</td>";
+
                     echo "</tr>";
                 }
                 ?>

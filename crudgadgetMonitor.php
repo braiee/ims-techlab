@@ -25,10 +25,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     $condition = $_POST['condition'];
     $purpose = $_POST['purpose'];
     $remarks = $_POST['remarks'];
+    $status = $_POST['status']; // Add status retrieval
 
     // SQL query to insert data into the gadget_monitor table
-    $sql = "INSERT INTO gadget_monitor (gadget_name, categories_id, legends_id, color, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, `condition`, purpose, remarks) 
-            VALUES ('$gadget_name', '$categories_id', '$legends_id', '$color', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$condition', '$purpose', '$remarks')";
+    $sql = "INSERT INTO gadget_monitor (gadget_name, categories_id, legends_id, color, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, `condition`, purpose, remarks, status) 
+            VALUES ('$gadget_name', '$categories_id', '$legends_id', '$color', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$condition', '$purpose', '$remarks', '$status')";
 
     if ($conn->query($sql) === TRUE) {
         $successMessage = "New gadget added successfully.";
@@ -55,9 +56,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
     $condition = $_POST['edit_condition'];
     $purpose = $_POST['edit_purpose'];
     $remarks = $_POST['edit_remarks'];
+    $status = $_POST['edit_status']; // Add status retrieval
 
     // SQL query to update gadget details
-    $sql = "UPDATE gadget_monitor SET gadget_name='$gadget_name', categories_id='$categories_id', legends_id='$legends_id', color='$color', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', `condition`='$condition', purpose='$purpose', remarks='$remarks' WHERE gadget_id=$gadget_id";
+    $sql = "UPDATE gadget_monitor SET gadget_name='$gadget_name', categories_id='$categories_id', legends_id='$legends_id', color='$color', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', `condition`='$condition', purpose='$purpose', remarks='$remarks', status='$status' WHERE gadget_id=$gadget_id";
 
     if ($conn->query($sql) === TRUE) {
         $successMessage = "Gadget details updated successfully.";

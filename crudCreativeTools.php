@@ -23,20 +23,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_creative_tool'])) 
     $remarks = $_POST['remarks'];
     $categories_id = $_POST['categories_id'];
     $legends_id = $_POST['legends_id'];
+    $status = $_POST['status']; // Retrieve status
 
     // SQL query to insert data into creative_tools table
-    $sql = "INSERT INTO creative_tools (creative_name, descriptions, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks, categories_id, legends_id) VALUES ('$creative_name', '$descriptions', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$remarks', '$categories_id', '$legends_id')";
+    $sql = "INSERT INTO creative_tools (creative_name, descriptions, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks, categories_id, legends_id, status) VALUES ('$creative_name', '$descriptions', '$qty', '$emei', '$sn', '$ref_rnss', '$owner', '$custodian', '$rnss_acc', '$remarks', '$categories_id', '$legends_id', '$status')";
 
     if ($conn->query($sql) === TRUE) {
         $message = "New creative tool added successfully.";
         $success = true;
+        // Redirect to creativeTools.php after successful add
+        header("Location: creativeTools.php");
+        exit();
     } else {
         $message = "Error adding creative tool: " . $conn->error;
     }
 }
 
 // Check if the form for editing a creative tool is submitted
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_creative_tool'])) {
     // Retrieve data from the form
     $creative_id = $_POST['edit_creative_id'];
     $creative_name = $_POST['edit_creative_name'];
@@ -51,13 +55,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
     $remarks = $_POST['edit_remarks'];
     $categories_id = $_POST['edit_categories_id'];
     $legends_id = $_POST['edit_legends_id'];
+    $status = $_POST['edit_status']; // Retrieve status
 
     // SQL query to update data in creative_tools table
-    $sql = "UPDATE creative_tools SET creative_name='$creative_name', descriptions='$descriptions', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', remarks='$remarks', categories_id='$categories_id', legends_id='$legends_id' WHERE creative_id='$creative_id'";
+    $sql = "UPDATE creative_tools SET creative_name='$creative_name', descriptions='$descriptions', qty='$qty', emei='$emei', sn='$sn', ref_rnss='$ref_rnss', owner='$owner', custodian='$custodian', rnss_acc='$rnss_acc', remarks='$remarks', categories_id='$categories_id', legends_id='$legends_id', status='$status' WHERE creative_id='$creative_id'";
 
     if ($conn->query($sql) === TRUE) {
         $message = "Creative tool updated successfully.";
         $success = true;
+        // Redirect to creativeTools.php after successful update
+        header("Location: creativeTools.php");
+        exit();
     } else {
         $message = "Error updating creative tool: " . $conn->error;
     }

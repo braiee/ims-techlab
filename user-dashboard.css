@@ -1,18 +1,13 @@
-/* user-dashboard.css */
-
 body {
     overflow: hidden;
 }
 
-/* user-dashboard.css */
-
 .container {
     width: 80%;
     max-width: 1200px;
-    margin: 20px auto; /* Adjust margin-top as needed */
+    margin: 0 auto;
     overflow: auto;
 }
-
 
 .card-row {
     display: flex;
@@ -21,9 +16,9 @@ body {
 }
 
 .card {
-    width: 25%; /* Adjust as needed */
+    width: 45%;
     background-color: #f9f9f9;
-    padding: 10px;
+    padding: 20px;
     border-radius: 5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -36,19 +31,19 @@ body {
     margin-top: 20px;
     overflow-x: auto;
     overflow-y: auto;
+    max-height: 400px; /* Adjust as needed */
 }
 
 .product-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed; /* Ensures consistent column widths */
 }
-.product-table th,
-.product-table td {
+
+.product-table th, .product-table td {
     padding: 8px;
     border: 1px solid #ddd;
-    white-space: nowrap; /* Prevents wrapping of table content */
 }
+
 .search-filter-container {
     margin-bottom: 20px;
 }
