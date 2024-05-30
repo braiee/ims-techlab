@@ -11,6 +11,35 @@ if (isset($_POST['borrow_id'], $_POST['user_id'], $_POST['username'])) {
     // Determine decision based on the presence of 'approve' or 'reject' in the POST data
     if (isset($_POST['approve'])) {
         $decision = 'Approved';
+        
+        // Update the status of items to 'Approved'
+        $update_items_sql = "UPDATE creative_tools SET status = 'Approved' WHERE creative_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+        $stmt_items = $conn->prepare($update_items_sql);
+        $stmt_items->bind_param("i", $borrow_id);
+        $stmt_items->execute();
+        $stmt_items->close();
+        
+        $update_items_sql = "UPDATE gadget_monitor SET status = 'Approved' WHERE gadget_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+        $stmt_items = $conn->prepare($update_items_sql);
+        $stmt_items->bind_param("i", $borrow_id);
+        $stmt_items->execute();
+        $stmt_items->close();
+
+                
+        $update_items_sql = "UPDATE office_supplies SET status = 'Approved' WHERE office_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+        $stmt_items = $conn->prepare($update_items_sql);
+        $stmt_items->bind_param("i", $borrow_id);
+        $stmt_items->execute();
+        $stmt_items->close();
+
+                
+        $update_items_sql = "UPDATE vendor_owned SET status = 'Approved' WHERE vendor_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+        $stmt_items = $conn->prepare($update_items_sql);
+        $stmt_items->bind_param("i", $borrow_id);
+        $stmt_items->execute();
+        $stmt_items->close();
+        
+        // Repeat the above steps for other item tables if needed
     } elseif (isset($_POST['reject'])) {
         $decision = 'Not Approved';
     } else {

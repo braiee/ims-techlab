@@ -47,6 +47,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
         <span class="non-clickable-item">Borrow</span>
         <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
         <?php
         // Display settings link only for admin users
         if ($_SESSION['username'] === 'admin') {

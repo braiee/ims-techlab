@@ -139,6 +139,7 @@ $total_gadget_monitor = $conn->query("SELECT COUNT(*) FROM gadget_monitor")->fet
             </div>
         </div>
 
+        <div class="container">
         <div class="table-container">
             <table class="product-table">
                 <thead>

@@ -12,10 +12,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['identity'] != 1) {
 include 'db-connect.php';
 
 // Fetch users data
-$sqlUsers = "SELECT id, user_id, username FROM users WHERE identity = 0"; // Regular users
+$sqlUsers = "SELECT user_id, username FROM users WHERE identity = 0"; // Regular users
 $regularUsersResult = $conn->query($sqlUsers);
 
-$sqlAdmins = "SELECT id, user_id, username FROM users WHERE identity = 1"; // Admins
+$sqlAdmins = "SELECT user_id, username FROM users WHERE identity = 1"; // Admins
 $adminsResult = $conn->query($sqlAdmins);
 
 // Initialize message variables
@@ -145,10 +145,10 @@ $errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
                 // Output data of each regular user
                 while ($user = $regularUsersResult->fetch_assoc()) {
                     echo '<tr>';
-                    echo '<td><input type="checkbox" class="user-checkbox" value="' . $user["id"] . '"></td>';
+                    echo '<td><input type="checkbox" class="user-checkbox" value="' . $user["user_id"] . '"></td>';
                     echo '<td>' . $user["user_id"] . '</td>';
                     echo '<td>' . $user["username"] . '</td>';
-                    echo '<td><button class="edit-user-btn" data-user-id="' . $user["id"] . '">Edit</button></td>';
+                    echo '<td><button class="edit-user-btn" data-user-id="' . $user["user_id"] . '">Edit</button></td>';
                     echo '</tr>';
                 }
                 ?>
@@ -178,7 +178,7 @@ $errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
                     echo '<tr>';
                     echo '<td>' . $admin["user_id"] . '</td>';
                     echo '<td>' . $admin["username"] . '</td>';
-                    echo '<td><button class="edit-user-btn" data-user-id="' . $admin["id"] . '">Edit</button></td>';
+                    echo '<td><button class="edit-user-btn" data-user-id="' . $admin["user_id"] . '">Edit</button></td>';
                     echo '</tr>';
                 }
                 ?>
