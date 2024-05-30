@@ -125,7 +125,6 @@ $result = $conn->query($sql);
             echo '<thead>';
             echo '<tr>';
             echo '<th></th>'; // Checkbox column
-            echo '<th>ID</th>';
             echo '<th>Name</th>';
             echo '<th>Category</th>';
             echo '<th>Legends</th>';
@@ -152,7 +151,6 @@ $result = $conn->query($sql);
             while($row = $result->fetch_assoc()) {
                 echo '<tr>';
                 echo '<td><input type="checkbox" name="gadget_ids[]" value="' . $row["gadget_id"] . '"></td>'; // Checkbox
-                echo '<td>' . $row["gadget_id"] . '</td>';
                 echo '<td>'. $row["gadget_name"] . '</td>';
                 echo '<td>' . $row["categories_name"] . '</td>';
                 echo '<td>' . $row["legends_name"] . '</td>';

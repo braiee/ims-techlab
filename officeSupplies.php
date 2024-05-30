@@ -127,7 +127,6 @@ $result_legends = $conn->query($sql_legends);
                 echo '<thead>';
                 echo '<tr>';
                 echo '<th></th>'; // Checkbox column
-                echo '<th>ID</th>';
                 echo '<th>Name</th>';
                 echo '<th>Category</th>';
                 echo '<th>Legends</th>';
@@ -149,7 +148,6 @@ $result_legends = $conn->query($sql_legends);
                 while($row = $result->fetch_assoc()) {
                     echo '<tr>';
                     echo '<td><input type="checkbox" name="office_ids[]" value="' . $row["office_id"] . '"></td>'; // Checkbox
-                    echo '<td>' . $row["office_id"] . '</td>';
                     echo '<td>' . $row["office_name"] . '</td>';
                     echo '<td>' . $row["categories_name"] . '</td>';
                     echo '<td>' . $row["legends_name"] . '</td>';

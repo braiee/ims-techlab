@@ -30,6 +30,8 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
         <a href="dashboard.php" class="nav-item"><span class="icon-placeholder"></span>Dashboard</a>
         <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+
         <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
         <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Legends</a>
         <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Vendor-Owned</a>
@@ -43,6 +45,8 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
         <span class="non-clickable-item">Summary</span>
         <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+        <span class="non-clickable-item">Borrow</span>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
         <?php
         // Display settings link only for admin users
         if ($_SESSION['username'] === 'admin') {

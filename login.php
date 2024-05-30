@@ -1,6 +1,5 @@
 <?php
 session_start(); // Start the session at the beginning of the file
-
 include 'db-connect.php';
 
 // Initialize error variable
@@ -17,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST["password"];
 
         // SQL query to check if the username exists
-        $sql = "SELECT id, user_id, username, password, identity FROM users WHERE username = ?";
+        $sql = "SELECT user_id, username, password, identity FROM users WHERE username = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -27,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Username exists, now check the password
             $user = $result->fetch_assoc();
             
-            // Debug: Print the stored hashed password
+            // Debug: Print the stored hashed password (for debugging purposes, should be removed in production)
             error_log("Stored Hashed Password: " . $user['password']);
             error_log("Entered Password: " . $password);
             
@@ -103,9 +102,9 @@ $conn->close();
             ?>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
                 <label for="username">Username:</label>
-                <input type="text" id="username" name="username" placeholder="Enter username">
+                <input type="text" id="username" name="username" placeholder="Enter username" required>
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Enter password">
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
                 <button type="submit" class="assign-button">Login</button>
                 <div class="forgot-password-wrapper">
                     <a href="forgot_password.php" class="forgot-password">Forgot Password?</a>

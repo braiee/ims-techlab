@@ -1,5 +1,3 @@
-/* Dashboard.css */
-
 body {
     font-family: 'Josefin Sans', sans-serif;
     background-color: #DDF7E3;
@@ -7,10 +5,8 @@ body {
     padding: 0;
     display: flex;
     height: 100vh;
-    box-sizing: border-box; /* Ensure padding and borders are included in element's total width and height */
+    box-sizing: border-box;
 }
-
-
 
 /* Side Navigation */
 .side-nav {
@@ -21,14 +17,14 @@ body {
     left: 0;
     background-color: #C7E8CA;
     box-sizing: border-box;
-    overflow-y: auto; /* Allow scrolling if content exceeds the height */
+    overflow-y: auto;
     padding-top: 20px;
-    text-align: center; /* Center align items in the side navigation */
+    text-align: center;
 }
 
 .side-nav .logo {
-    width: 200px; /* Adjust the width as necessary */
-    margin-bottom: 20px; /* Space between logo and the first link */
+    width: 200px;
+    margin-bottom: 20px;
 }
 
 .side-nav .nav-item {
@@ -38,7 +34,7 @@ body {
     color: #5D9C59;
     display: flex;
     align-items: center;
-    transition: background-color 0.3s ease; /* Smooth transition on hover */
+    transition: background-color 0.3s ease;
 }
 
 .side-nav .nav-item:hover:not(.logo-link) {
@@ -51,11 +47,11 @@ body {
 }
 
 .side-nav .icon-placeholder {
-    width: 20px; /* Adjust the size as necessary */
-    height: 20px; /* Adjust the size as necessary */
-    background-color: transparent; /* Make it transparent or replace with an actual icon */
+    width: 20px;
+    height: 20px;
+    background-color: transparent;
     display: inline-block;
-    margin-right: 10px; /* Space between icon and text */
+    margin-right: 10px;
 }
 
 .non-clickable-item {
@@ -82,16 +78,15 @@ body {
     height: 65px;
 }
 
-
 .greeting {
     font-size: 18px;
     font-weight: bold;
-    margin-right: 20px; /* Add right margin */
+    margin-right: 20px;
 }
 
 .header-box-content {
     display: flex;
-    justify-content: flex-end; /* Adjust alignment since the logo is moved */
+    justify-content: flex-end;
     align-items: center;
 }
 
@@ -117,69 +112,47 @@ body {
 }
 
 /* Main Content */
-/* Greeting */
 .greeting {
     margin-top: -50px;
     font-size: 18px;
     font-weight: bold;
-    margin-bottom: 20px; /* Adjust spacing between greeting and cards */
+    margin-bottom: 20px;
 }
 
-/* Main Content */
 .main-content {
     margin-left: 250px;
-    margin-top: 85px; /* Adjust margin to accommodate the header box */
+    margin-top: 85px;
     margin-right: 20px;
     padding: 20px;
     box-sizing: border-box;
 }
 
-/* Adjust container width */
+/* Card Container */
 .card-container {
     display: flex;
-    flex-wrap: wrap; /* Allow cards to wrap onto the next line */
-    justify-content: space-around; /* Distribute space evenly between cards */
-    gap: 20px; /* Add gap between cards */
-    margin-top: 20px; /* Add some top margin */
-    padding: 0 20px; /* Add horizontal padding to the container */
-    box-sizing: border-box; /* Include padding in the container width */
-    width: 900px;
-    margin-left: 130px;
+    flex-wrap: wrap;
+    justify-content: center; /* Center the cards horizontally */
+    gap: 20px;
+    margin-top: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    max-width: 800px; /* Maximum width to ensure two cards per row */
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* Adjust card width for one row */
+/* Card Styles */
 .card {
     background-color: #C7E8CA;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: calc(35% - 40px); /* Each card takes up 1/3 of the container width with gap */
+    flex: 0 1 calc(50% - 10px); /* Ensure each card takes up half the container with spacing */
     box-sizing: border-box;
     transition: transform 0.2s;
-    cursor: pointer; /* Change cursor to pointer on hover */
+    cursor: pointer;
+    text-align: center;
 }
-
-/* Adjust card width for one row */
-.card:last-child {
-    margin-right: 0; /* Remove right margin from the last card to prevent extra spacing */
-}
-
-
-.main-ticket {
-    margin-left: 250px;
-    margin-top: 50px; /* Adjust margin to reduce space from the top */
-    margin-bottom: 50px; /* Adjust margin to reduce space from the bottom */
-    margin-right: 20px;
-    padding: 20px;
-    flex-grow: 1; /* Allow main content to grow and occupy available space */
-    display: flex;
-    justify-content: center; /* Center align items horizontally */
-    align-items: center; /* Center align items vertically */
-    flex-wrap: wrap;
-    gap: 20px; /* Space between cards */
-    box-sizing: border-box;
-}
-
 
 .card h3 {
     margin-top: 0;
@@ -188,14 +161,36 @@ body {
 
 .card p {
     color: #333;
-    
 }
 
 .card:hover {
-    transform: translateY(-5px); /* Slight lift effect on hover */
+    transform: translateY(-5px);
 }
 
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+tr:nth-child(odd) {
+    background-color: #f9f9f900;
+}
+
+tr:nth-child(even) {
+    background-color: #fff;
+}
+
+/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -207,6 +202,7 @@ body {
     overflow: auto;
     background-color: rgba(0, 0, 0, 0.5);
 }
+
 .modal-content {
     background-color: #C7E8CA;
     margin: 10% auto;
@@ -218,6 +214,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     animation: fadeIn 0.5s;
 }
+
 .close {
     color: #aaa;
     float: right;
@@ -225,16 +222,18 @@ body {
     font-weight: bold;
     cursor: pointer;
 }
-.close:hover,
-.close:focus {
+
+.close:hover, .close:focus {
     color: #000;
     text-decoration: none;
     cursor: pointer;
 }
+
 #modalTitle {
     font-size: 24px;
     margin-bottom: 20px;
 }
+
 #searchInputModal {
     width: 20%;
     padding: 10px;
@@ -242,41 +241,108 @@ body {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
 #noTicketsMessage {
     font-size: 18px;
     text-align: center;
 }
-table {
-    width: 100%;
-    border-collapse: collapse;
+/* Search and Filter Form */
+.search-filter-form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: #C7E8CA;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    box-sizing: border-box;
 }
 
-th, td {
-    padding: 8px;
-    text-align: left;
+.search-filter-form input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    width: 200px;
 }
-th {
-    background-color: #f2f2f2;
+
+.search-filter-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
 }
-tr:nth-child(odd) {
-    background-color: #f9f9f900;
+
+.search-filter-form button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
 }
-tr:nth-child(even) {
-    background-color: #fff;
+
+.search-filter-form button:hover {
+    background-color: #45a049;
+}
+
+/* Card Container */
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Card Styles */
+.card {
+    background-color: #C7E8CA;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    flex: 0 1 calc(50% - 10px);
+    box-sizing: border-box;
+    transition: transform 0.2s;
+    cursor: pointer;
+    text-align: center;
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #5D9C59;
+}
+
+.card p {
+    color: #333;
+}
+
+.card:hover {
+    transform: translateY(-5px);
 }
 
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
+
 .fade-in {
     animation: fadeIn 0.5s;
 }
+
 .fade-out {
     animation: fadeOut 0.5s;
 }
+
 @keyframes fadeOut {
     from { opacity: 1; }
     to { opacity: 0; }
 }
-
