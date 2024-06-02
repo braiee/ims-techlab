@@ -27,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_office_supply'])) 
     $office_name = $_POST['office_name'];
     $emei = $_POST['emei'];
     $sn = $_POST['sn'];
-    $owner = $_POST['owner'];
     $custodian = $_POST['custodian'];
     $rnss_acc = $_POST['rnss_acc'];
     $remarks = $_POST['remarks'];
@@ -36,10 +35,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_office_supply'])) 
     $status = $_POST['status'];
 
     // Prepare SQL statement to insert office supply into the database using prepared statement
-    $sql = "INSERT INTO office_supplies (office_name, emei, sn, owner, custodian, rnss_acc, remarks, categories_id, legends_id, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO office_supplies (office_name, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssss", $office_name, $emei, $sn, $owner, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $status);
+    $stmt->bind_param("sssssssss", $office_name, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $status);
     
     if ($stmt->execute()) {
         $successMessage = "New office supply added successfully.";
@@ -57,7 +56,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_office_supply']))
     $office_name = $_POST['edit_office_name'];
     $emei = $_POST['edit_emei'];
     $sn = $_POST['edit_sn'];
-    $owner = $_POST['edit_owner'];
     $custodian = $_POST['edit_custodian'];
     $rnss_acc = $_POST['edit_rnss_acc'];
     $remarks = $_POST['edit_remarks'];
@@ -67,10 +65,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_office_supply']))
 
     // Prepare SQL statement for updating data in office_supplies table using prepared statement
     $sql = "UPDATE office_supplies 
-            SET office_name=?, emei=?, sn=?, owner=?, custodian=?, rnss_acc=?, remarks=?, categories_id=?, legends_id=?, status=?
+            SET office_name=?, emei=?, sn=?, custodian=?, rnss_acc=?, remarks=?, categories_id=?, legends_id=?, status=?
             WHERE office_id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssi", $office_name, $emei, $sn, $owner, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $status, $office_id);
+    $stmt->bind_param("ssssssssi", $office_name, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $status, $office_id);
     
     if ($stmt->execute()) {
         $successMessage = "Office supply updated successfully.";
@@ -81,18 +79,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_office_supply']))
     $stmt->close();
 }
 
-// Handle form submissions for deleting office supplies
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_office_supply'])) {
-    // Get office supply IDs and delete them from the database
-    if (isset($_POST['office_ids']) && !empty($_POST['office_ids'])) {
+// Delete office supplies
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
+    // Handle delete action
+    // Get office supply IDs and update their status to "Deleted" in the database
+    if (isset($_POST['office_ids'])) {
         $office_ids = $_POST['office_ids'];
-        $office_ids_str = implode(",", $office_ids);
-        $sql = "DELETE FROM office_supplies WHERE office_id IN ($office_ids_str)";
+        $office_ids_str = "'" . implode("','", $office_ids) . "'";
+        
+        // Get current user's username
+        $current_user = $_SESSION['username'];
+        
+        // Get current timestamp
+        $current_timestamp = date("Y-m-d H:i:s");
+        
+        $sql = "UPDATE office_supplies SET status = 'Deleted', delete_timestamp = '$current_timestamp', deleted_by = '$current_user' WHERE office_id IN ($office_ids_str)";
         
         if ($conn->query($sql) === TRUE) {
-            $successMessage = "Office supplies deleted successfully.";
+            $successMessage = "Office supplies marked as deleted successfully.";
         } else {
-            $errorMessage = "Error deleting office supplies: " . $conn->error;
+            $errorMessage = "Error marking office supplies as deleted: " . $conn->error;
         }
     } else {
         $errorMessage = "No office supplies selected to delete.";

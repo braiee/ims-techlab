@@ -100,7 +100,6 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         border: 1px solid #4CAF50;
     }
 
-    .pagination a:hover:not(.active) {background-color: #ddd;}
 
        /* Pagination styles */
        #pagination {
@@ -136,19 +135,27 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+    <a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
     <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+        <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
+
+
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -169,6 +176,9 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         }
         ?>
     </div>
+
+    <Br>
+    <br>
     
     <!-- Container for Cards -->
     <div class="card-container">
@@ -176,12 +186,8 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
             <h3>Product</h3>
             <p>View Table</p>
         </div>
-        <div class="card" id="borrowCard" onclick="loadTableContent('Borrow')">
-            <h3>Borrow</h3>
-            <p>View Table</p>
-        </div>
-        <div class="card">
-            <h3>User</h3>
+        <div class="card" id="borrowCard" onclick="loadTableContent('Borrowed Items')">
+            <h3>Borrowed Items</h3>
             <p>View Table</p>
         </div>
         <div class="card" id="suppliesCard" onclick="loadTableContent('Supplies')">
@@ -194,10 +200,6 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         </div>
         <div class="card" id="deviceMonitorsCard" onclick="loadTableContent('Device Monitors')">
             <h3>Device Monitors</h3>
-            <p>View Table</p>
-        </div>
-        <div class="card">
-            <h3>Device Supplies</h3>
             <p>View Table</p>
         </div>
         <div class="card" id="vendorOwnedCard" onclick="loadTableContent('Vendor Owned Devices')">
@@ -267,8 +269,9 @@ function fetchTableData(table, page) {
             var pagination = document.getElementById('pagination');
 
             var tableContent = '';
-
-            if (table === 'Device Monitors') {
+            if (table === 'Borrowed Items') {
+                 tableContent = generateBorrowedItemsTable(response.borrowed_items);
+            } else if (table === 'Device Monitors') {
                 tableContent = generateDeviceMonitorsTable(response.gadget_monitor);
             } else if (table === 'Location') {
                 tableContent = generateLocationTable(response.locations);
@@ -282,9 +285,8 @@ function fetchTableData(table, page) {
                 tableContent = generateCreativeToolsTable(response.creative_tools);
             } else if (table === 'Product') { // Handle 'Product' table
                 tableContent = generateProductTable(response.products); // Generate product table
-            } else {
-                tableContent = generateTicketingTable(response.tickets);
             }
+
 
             tableContentModal.innerHTML = tableContent;
 
@@ -301,6 +303,15 @@ function fetchTableData(table, page) {
 }
 
 
+function generateBorrowedItemsTable(data) {
+    var tableContent = '<table><thead><tr><th>Item Name</th><th>Status</th><th>Username</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.item_name + '</td><td>' + item.status + '</td><td>' + item.username + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
 
 function generateProductTable(data) {
     var tableContent = '<table><thead><tr><th>Source</th><th>Item</th><th>Category</th><th>Location</th><th>Description</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Condition</th><th>Purpose</th><th>Status</th></tr></thead><tbody>';
@@ -314,9 +325,9 @@ function generateProductTable(data) {
 
 
 function generateDeviceMonitorsTable(data) {
-    var tableContent = '<table><thead><tr><th>Gadget ID</th><th>Gadget Name</th><th>Cateogry</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Condition</th><th>Purpose</th><th>Remarks</th><th>Location</th><th>Status</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Gadget Name</th><th>Cateogry</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Condition</th><th>Purpose</th><th>Remarks</th><th>Location</th><th>Status</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.gadget_id + '</td><td>' + item.gadget_name + '</td><td>' + item.categories_name + '</td><td>' + item.color + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.condition + '</td><td>' + item.purpose + '</td><td>' + item.remarks + '</td><td>' + item.legends_name + '</td><td>' + item.status + '</td></tr>';
+        tableContent += '<tr><td>' + item.gadget_name + '</td><td>' + item.categories_name + '</td><td>' + item.color + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.condition + '</td><td>' + item.purpose + '</td><td>' + item.remarks + '</td><td>' + item.legends_name + '</td><td>' + item.status + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;
@@ -343,9 +354,9 @@ function generateVendorOwnedTable(data) {
 }
 
 function generateCategoriesTable(data) {
-    var tableContent = '<table><thead><tr><th>Categories ID</th><th>Categories Name</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Categories Name</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.categories_id + '</td><td>' + item.categories_name + '</td></tr>';
+        tableContent += '<tr><td>' + item.categories_name + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;
@@ -369,15 +380,6 @@ function generateCreativeToolsTable(data) {
     return tableContent;
 }
 
-
-function generateTicketingTable(data) {
-    var tableContent = '<table><thead><tr><th>Ticket ID</th><th>Task Name</th><th>Description</th><th>Status</th><th>Assigned To</th><th>Date Created</th></tr></thead><tbody>';
-    data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.ticket_id + '</td><td>' + item.task_name + '</td><td>' + item.description + '</td><td>' + item.status + '</td><td>' + item.assigned_to + '</td><td>' + item.date_created + '</td></tr>';
-    });
-    tableContent += '</tbody></table>';
-    return tableContent;
-}
 
 function generatePagination(table, totalPages, currentPage) {
     var paginationContent = '';

@@ -20,7 +20,7 @@ unset($_SESSION['success_message']);
 unset($_SESSION['error_message']);
 
 // SQL query to fetch legends data
-$sql = "SELECT legends_id, legends_name FROM legends";
+$sql = "SELECT legends_id, legends_name, abv FROM legends";
 $result = $conn->query($sql);
 
 ?>
@@ -38,19 +38,26 @@ $result = $conn->query($sql);
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-<a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+<a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item active"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
+
     <span class="non-clickable-item">Office</span>
-    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item "><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -98,11 +105,15 @@ $result = $conn->query($sql);
 
             <?php
             if ($result->num_rows > 0) {
+
+                echo '<div class="table-container">'; // Add a container div for the table
+
                 echo '<table>';
                 echo '<thead>';
                 echo '<tr>';
                 echo '<th></th>'; // Checkbox column
                 echo '<th>Location</th>';
+                echo '<th>Abbreviation</th>';
                 echo '<th>Action</th>'; // Edit button column
                 echo '</tr>';
                 echo '</thead>';
@@ -113,11 +124,13 @@ $result = $conn->query($sql);
                     echo '<tr>';
                     echo '<td><input type="checkbox" name="delete_legend_id[]" value="' . $row["legends_id"] . '"></td>'; // Checkbox
                     echo '<td>' . $row["legends_name"] . '</td>';
-                    echo '<td><button type="button" onclick="showEditLegendModal(' . $row["legends_id"] . ', \'' . $row["legends_name"] . '\')" class="btn-edit">Edit</button></td>'; // Edit button
+                    echo '<td>' . $row["abv"] . '</td>';
+                    echo '<td><button type="button" onclick="showEditLegendModal(' . $row["legends_id"] . ', \'' . $row["legends_name"] . '\', \'' . $row["abv"] . '\')" class="btn-edit">Edit</button></td>';
                     echo '</tr>';
                 }
                 echo '</tbody>';
                 echo '</table>';
+                echo '</div>'; // Close the container div
             } else {
                 echo "No legends found.";
             }
@@ -137,7 +150,13 @@ $result = $conn->query($sql);
         <form action="crudLegends.php" method="post">
             <h2>Add Location</h2>
             <label for="legend_name">Location Name:</label>
-            <input type="text" id="legend_name" name="legend_name" required>
+            <input type="text" id="legend_name" name="legend_name" placeholder="Enter Location" required>
+            <br>
+            <br>
+
+            <label for="legend_abv">Abbreviation:</label>
+            <input type="text" id="legend_abv" placeholder="Enter Abbreviation" name="legend_abv" required>
+
             <input type="submit" name="add_legend" value="Add Legend">
         </form>
     </div>
@@ -152,6 +171,8 @@ $result = $conn->query($sql);
             <input type="hidden" id="edit_legend_id" name="edit_legend_id">
             <label for="edit_legend_name">Location Name:</label>
             <input type="text" id="edit_legend_name" name="edit_legend_name" required>
+            <label for="edit_legend_abv">Abbreviation:</label>
+            <input type="text" id="edit_legend_abv" name="edit_legend_abv" required>
             <input type="submit" name="edit_legend" value="Edit Legend">
         </form>
     </div>
@@ -187,13 +208,12 @@ function hideMessages() {
         addLegendModal.style.display = "none";
     }
 
-    // Show Edit Legend Modal
-    function showEditLegendModal(legend_id, legend_name) {
-        document.getElementById('edit_legend_id').value = legend_id;
-        document.getElementById('edit_legend_name').value = legend_name;
-        editLegendModal.style.display = "block";
-    }
-
+    function showEditLegendModal(legend_id, legend_name, legend_abv) {
+    document.getElementById('edit_legend_id').value = legend_id;
+    document.getElementById('edit_legend_name').value = legend_name;
+    document.getElementById('edit_legend_abv').value = legend_abv;
+    editLegendModal.style.display = "block";
+}
     // Close Edit Legend Modal
     function closeEditLegendModal() {
         editLegendModal.style.display = "none";
@@ -213,6 +233,9 @@ function hideMessages() {
 
 <!-- CSS for buttons (for illustration purposes, you can adjust as needed) -->
 <style>
+    .modal-content{
+        width: 30%;
+    }
     .btn-add, .btn-delete, .btn-edit {
         padding: 10px 15px;
         margin-right: 10px;

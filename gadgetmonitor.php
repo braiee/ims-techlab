@@ -19,35 +19,39 @@ $errorMessage = "";
 $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
-// Check if form is submitted (for deleting gadgets)
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
-    // Handle delete action
-    // Get gadget IDs and delete them from the database
-    if (isset($_POST['gadget_ids'])) {
-        $gadget_ids = $_POST['gadget_ids'];
-        $gadget_ids_str = "'" . implode("','", $gadget_ids) . "'";
-        $sql = "DELETE FROM gadget_monitor WHERE gadget_id IN ($gadget_ids_str)";
-        
-        if ($conn->query($sql) === TRUE) {
-            $successMessage = "Gadgets deleted successfully.";
-        } else {
-            $errorMessage = "Error deleting gadgets: " . $conn->error;
+// Delete gadget
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
+    // Retrieve gadget IDs to delete
+    $gadget_ids = $_POST['gadget_ids'];
+
+    // Get current user's username
+    $current_user = $_SESSION['username'];
+
+    // Update status to "Deleted" and set delete_timestamp and deleted_by for each selected gadget
+    $current_timestamp = date("Y-m-d H:i:s");
+    foreach ($gadget_ids as $gadget_id) {
+        $sql = "UPDATE gadget_monitor SET status = 'Deleted', delete_timestamp = '$current_timestamp', deleted_by = '$current_user' WHERE gadget_id=$gadget_id";
+        if ($conn->query($sql) !== TRUE) {
+            $errorMessage .= "Error marking gadget as deleted: " . $conn->error . "<br>";
         }
-    } else {
-        $errorMessage = "No gadgets selected to delete.";
+    }
+
+    if (empty($errorMessage)) {
+        $successMessage = "Gadgets marked as deleted successfully.";
     }
 }
 
-// SQL query to fetch gadget data
+// SQL query to fetch gadget data excluding items with status "Deleted"
 $sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.emei, gm.sn,  gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks, gm.legends_id, l.legends_name, gm.status
         FROM gadget_monitor gm 
         LEFT JOIN categories c ON gm.categories_id = c.categories_id
-        LEFT JOIN legends l ON gm.legends_id = l.legends_id";
-
+        LEFT JOIN legends l ON gm.legends_id = l.legends_id
+        WHERE gm.status != 'Deleted'";
 
 $result = $conn->query($sql);
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -182,19 +186,24 @@ $result = $conn->query($sql);
 <body>
     <!-- Side Navigation -->
     <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+    <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
+<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
-    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+    <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item active"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
+        <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
     </div>
 
     <!-- Header box container -->
@@ -227,7 +236,7 @@ $result = $conn->query($sql);
             echo '<form action="" method="post">';
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<h2 style="color: #5D9C59;">Manage Gadget Monitor</h2>';
-            echo '<input type="submit" name="delete" value="Delete">';
+            echo '<input type="submit" name="delete_gadget" value="Delete">';
             echo '</div>';
 
             echo '<div class="table-container">'; // Add a container div for the table
@@ -420,6 +429,8 @@ $result = $conn->query($sql);
                     <option value="Pending">Pending</option>
                     <option value="Approved">Approved</option>
                     <option value="Returned">Returned</option>
+                    <option value="Returned">Not Available</option>
+
                 </select><br>
                 
                 <input type="submit" name="edit_gadget" value="Save Changes">

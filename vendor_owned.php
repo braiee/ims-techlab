@@ -46,58 +46,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 
-    // Edit vendor-owned item
-    if (isset($_POST['edit_vendor_owned'])) {
-        $vendor_id = $_POST['edit_vendor_id'];
-        $item_name = $_POST['edit_item_name'];
-        $vendor_name = $_POST['edit_vendor_name'];
-        $contact_person = $_POST['edit_contact_person'];
-        $purpose = $_POST['edit_purpose'];
-        $turnover_tsto = $_POST['edit_turnover_tsto'];
-        $return_vendor = $_POST['edit_return_vendor'];
-        $categories_id = $_POST['edit_categories_id'];
-        $legends_id = $_POST['edit_legends_id'];
-        $status = $_POST['edit_status'];
+// Edit vendor-owned item
+if (isset($_POST['edit_vendor_owned'])) {
+    $vendor_id = $_POST['edit_vendor_id'];
+    $item_name = $_POST['edit_item_name'];
+    $vendor_name = $_POST['edit_vendor_name'];
+    $contact_person = $_POST['edit_contact_person'];
+    $purpose = $_POST['edit_purpose'];
+    $turnover_tsto = $_POST['edit_turnover_tsto'];
+    $return_vendor = $_POST['edit_return_vendor'];
+    $categories_id = $_POST['edit_categories_id'];
+    $legends_id = $_POST['edit_legends_id'];
+    $status = $_POST['edit_status'];
 
-        $sql = "UPDATE vendor_owned SET item_name=?, vendor_name=?, contact_person=?, purpose=?, turnover_tsto=?, return_vendor=?, categories_id=?, legends_id=?, status=? WHERE vendor_id=?";
+    $sql = "UPDATE vendor_owned 
+            SET item_name=?, vendor_name=?, contact_person=?, purpose=?, turnover_tsto=?, return_vendor=?, categories_id=?, legends_id=?, status=? 
+            WHERE vendor_id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssissi", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor, $categories_id, $legends_id, $status, $vendor_id);
+
+    if ($stmt->execute()) {
+        $successMessage = "Vendor-owned item updated successfully.";
+    } else {
+        $errorMessage = "Error updating vendor-owned item: " . $conn->error;
+    }
+    $stmt->close();
+}
+
+// Delete vendor-owned items
+if (isset($_POST['delete_vendor_owned'])) {
+    if (isset($_POST['vendor_ids'])) {
+        $vendor_ids = $_POST['vendor_ids'];
+        $vendor_ids_str = implode(',', array_fill(0, count($vendor_ids), '?'));
+
+        // Get the username of the user performing the deletion
+        $deleted_by = $_SESSION['username']; // Assuming username is stored in the session
+
+        // Get the current timestamp
+        $delete_timestamp = date('Y-m-d H:i:s');
+
+        // Update the status to 'deleted', set Deleted By, and Delete Timestamp
+        $sql = "UPDATE vendor_owned 
+                SET status='deleted', deleted_by=?, delete_timestamp=? 
+                WHERE vendor_id IN ($vendor_ids_str)";
+        $typeString = str_repeat('s', count($vendor_ids) + 2); // +2 for deleted_by and delete_timestamp
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssi", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor, $categories_id, $legends_id, $status, $vendor_id);
+
+        // Create an array with bind parameters dynamically
+        $params = array_merge([$typeString, $deleted_by, $delete_timestamp], $vendor_ids);
+        $stmt->bind_param(...$params);
 
         if ($stmt->execute()) {
-            $successMessage = "Vendor-owned item updated successfully.";
+            $successMessage = "Vendor-owned items marked as deleted successfully.";
         } else {
-            $errorMessage = "Error updating vendor-owned item: " . $conn->error;
+            $errorMessage = "Error marking vendor-owned items as deleted: " . $conn->error;
         }
         $stmt->close();
-    }
-
-    // Delete vendor-owned items
-    if (isset($_POST['delete_vendor_owned'])) {
-        if (isset($_POST['vendor_ids'])) {
-            $vendor_ids = $_POST['vendor_ids'];
-            $vendor_ids_str = implode(',', array_fill(0, count($vendor_ids), '?'));
-            $sql = "DELETE FROM vendor_owned WHERE vendor_id IN ($vendor_ids_str)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param(str_repeat('i', count($vendor_ids)), ...$vendor_ids);
-
-            if ($stmt->execute()) {
-                $successMessage = "Vendor-owned items deleted successfully.";
-            } else {
-                $errorMessage = "Error deleting vendor-owned items: " . $conn->error;
-            }
-            $stmt->close();
-        } else {
-            $errorMessage = "No vendor-owned items selected to delete.";
-        }
+    } else {
+        $errorMessage = "No vendor-owned items selected to mark as deleted.";
     }
 }
 
-// SQL query to fetch vendor-owned data along with categories and legends information
+}
+
 $sql = "SELECT vo.*, c.categories_name, l.legends_name 
         FROM vendor_owned vo
         LEFT JOIN categories c ON vo.categories_id = c.categories_id
-        LEFT JOIN legends l ON vo.legends_id = l.legends_id";
+        LEFT JOIN legends l ON vo.legends_id = l.legends_id
+        WHERE vo.status != 'deleted'";
 $result = $conn->query($sql);
+
 
 ?>
 
@@ -161,19 +179,23 @@ input[type="date"] {
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-    <a href="legends.php" class="nav-item "><span class="icon-placeholder"></span>Device Location</a>
+<a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
+<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
-    <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+        <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -240,7 +262,7 @@ input[type="date"] {
                 echo '<td>' . $row["categories_name"] . '</td>';
                 echo '<td>' . $row["legends_name"] . '</td>';
                 echo '<td>' . $row["status"] . '</td>';
-echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $row["vendor_id"] . '\', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
+                echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $row["vendor_id"] . '\', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
                 echo '</tr>';
             }
             echo '</tbody>';
@@ -334,10 +356,12 @@ echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $r
             <input type="date" id="edit_turnover_tsto" name="edit_turnover_tsto" required><br>
             <label for="edit_return_vendor">Date of Return to Vendor:</label><br>
             <input type="date" id="edit_return_vendor" name="edit_return_vendor"><br>
-            <label for="categories_id">Category:</label>
-            <select id="categories_id" name="categories_id" >
+
+            <label for="edit_categories_id">Category:</label>
+            <select id="edit_categories_id" name="edit_categories_id" >
                 <option value="">Select Category</option>
                 <?php
+                $categoriesResult->data_seek(0);
                 if ($categoriesResult->num_rows > 0) {
                     while($category = $categoriesResult->fetch_assoc()) {
                         echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
@@ -345,8 +369,8 @@ echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $r
                 }
                 ?>
             </select>
-            <label for="legends_id">Legends:</label>
-            <select id="legends_id" name="legends_id" >
+            <label for="edit_legends_id">Legends:</label>
+            <select id="edit_legends_id" name="edit_legends_id" >
                 <option value="">Select Legends</option>
                 <?php
                 // Reset legendsResult cursor
@@ -358,7 +382,9 @@ echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $r
                 }
                 ?>
             </select>
-            <select id="status" name="status" >
+            <label for="status">Status:</label><br>
+
+            <select id="edit_status" name="edit_status" >
     <option value="Available">Available</option>
     <option value="Pending">Pending</option>
     <option value="Approved">Approved</option>
@@ -377,8 +403,8 @@ echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $r
         document.getElementById('addModal').style.display = "block";
     }
 
-// Show Edit Modal
-function openEditModal(vendor_id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, status) {
+    function openEditModal(vendor_id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, status) {
+    // Fill in the values in the edit form
     document.getElementById('edit_vendor_id').value = vendor_id;
     document.getElementById('edit_item_name').value = item_name;
     document.getElementById('edit_vendor_name').value = vendor_name;
@@ -386,19 +412,35 @@ function openEditModal(vendor_id, item_name, vendor_name, contact_person, purpos
     document.getElementById('edit_purpose').value = purpose;
     document.getElementById('edit_turnover_tsto').value = turnover_tsto;
     document.getElementById('edit_return_vendor').value = return_vendor;
+
+    // Set the selected value for categories_id
     document.getElementById('edit_categories_id').value = categories_id;
+    
+    // Set the selected value for legends_id
     document.getElementById('edit_legends_id').value = legends_id;
+
+    // Set the selected value for status
     document.getElementById('edit_status').value = status;
+
+    // Display the edit modal
     document.getElementById('editModal').style.display = "block";
 }
 
-    // Close Modals
-    function closeAddModal() {
-        document.getElementById('addModal').style.display = "none";
-    }
     function closeEditModal() {
         document.getElementById('editModal').style.display = "none";
     }
+
+function closeEditModal() {
+    var editModal = document.getElementById('editModal');
+    fadeOut(editModal);
+}
+
+// Close Modals
+function closeAddModal() {
+    var addModal = document.getElementById('addModal');
+    fadeOut(addModal);
+}
+
 
     // Automatically close message after 1 second
     setTimeout(function () {

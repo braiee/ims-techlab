@@ -57,7 +57,7 @@ $result = $conn->query($sql);
 <div class="side-nav">
 <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
+    <a href="admin-borrow.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Office</span>
@@ -66,8 +66,9 @@ $result = $conn->query($sql);
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+
 </div>
 
 <!-- Header box container -->

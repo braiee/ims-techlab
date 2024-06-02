@@ -18,25 +18,33 @@ $errorMessage = "";
 // Check if form is submitted (for deleting office supplies)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
     // Handle delete action
-    // Get office supply IDs and delete them from the database
+    // Get office supply IDs and update their status to "Deleted" in the database
     if (isset($_POST['office_ids'])) {
         $office_ids = $_POST['office_ids'];
         $office_ids_str = "'" . implode("','", $office_ids) . "'";
-        $sql = "DELETE FROM office_supplies WHERE office_id IN ($office_ids_str)";
+        
+        // Get current user's username
+        $current_user = $_SESSION['username'];
+        
+        // Get current timestamp
+        $current_timestamp = date("Y-m-d H:i:s");
+        
+        $sql = "UPDATE office_supplies SET status = 'Deleted', delete_timestamp = '$current_timestamp', deleted_by = '$current_user' WHERE office_id IN ($office_ids_str)";
         
         if ($conn->query($sql) === TRUE) {
-            $successMessage = "Office supplies deleted successfully.";
+            $successMessage = "Office supplies marked as deleted successfully.";
         } else {
-            $errorMessage = "Error deleting office supplies: " . $conn->error;
+            $errorMessage = "Error marking office supplies as deleted: " . $conn->error;
         }
     } else {
         $errorMessage = "No office supplies selected to delete.";
     }
 }
 
-// SQL query to fetch office supply data
-$sql = "SELECT office_id, office_name, emei, sn, owner, custodian, rnss_acc, remarks, status, categories_id, legends_id 
-        FROM office_supplies";
+// SQL query to fetch office supply data excluding those with status "Deleted"
+$sql = "SELECT office_id, office_name, emei, sn, custodian, rnss_acc, remarks, status, categories_id, legends_id 
+        FROM office_supplies
+        WHERE status != 'Deleted'";
 $result = $conn->query($sql);
 
 // Fetch categories from the database
@@ -45,9 +53,8 @@ $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM cat
 // Fetch legends from the database
 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
-// Fetch status options
-$statusOptions = array("Available", "Pending", "Approved", "Returned");
-
+// Fetch status options excluding "Deleted"
+$statusOptions = array("Available", "Pending", "Approved", "Returned", "Not Available");
 
 // Function to get category name based on category ID
 function getCategoryName($category_id, $conn) {
@@ -75,6 +82,7 @@ function getLegendName($legend_id, $conn) {
 
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -135,19 +143,24 @@ table {
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-    <a href="legends.php" class="nav-item "><span class="icon-placeholder"></span>Device Location</a>
+<a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
+<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item active"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
+        <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -169,15 +182,14 @@ table {
 
 <div class="main-content">
     <div class="container">
-    <?php
-       
+        <?php
         if ($result->num_rows > 0) {
             echo '<form action="" method="post">';
             echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
             echo '<h2 style="color: #5D9C59;">Manage Office Supplies</h2>';
-            
             echo '<input type="submit" name="delete" value="Delete">';
             echo '</div>';
+
             if (isset($_GET['success'])) {
                 $successMessage = urldecode($_GET['success']);
                 echo '<div class="success-message">' . $successMessage . '</div>';
@@ -187,48 +199,47 @@ table {
                 echo '</div>';
             }
 
- echo '<div class="table-container">';
-                echo '<table>';
-                
-                echo '<thead>';
+            echo '<div class="table-container">';
+            echo '<table>';
+            echo '<thead>';
+            echo '<tr>';
+            echo '<th></th>'; // Checkbox column
+            echo '<th>Item</th>';
+            echo '<th>IMEI</th>';
+            echo '<th>SN</th>';
+            echo '<th>Cust.</th>';
+            echo '<th>RNSS</th>';
+            echo '<th>Rem.</th>';
+            echo '<th>Loc.</th>';
+            echo '<th>Cat.</th>';
+            echo '<th>Status</th>';
+            echo '<th>Action</th>'; // New column for actions
+            echo '</tr>';
+            echo '</thead>';
+            echo '<tbody>';
+
+            // Output data of each row
+            while ($row = $result->fetch_assoc()) {
                 echo '<tr>';
-                echo '<th></th>'; // Checkbox column
-                echo '<th>Item</th>';
-                echo '<th>IMEI</th>';
-                echo '<th>SN</th>';
-                echo '<th>Cust.</th>';
-                echo '<th>RNSS</th>';
-                echo '<th>Rem.</th>';
-                echo '<th>Loc.</th>';
-                echo '<th>Cat.</th>';
-                echo '<th>Status</th>';
-                echo '<th>Action</th>'; // New column for actions
+                echo '<td><input type="checkbox" name="office_ids[]" value="' . $row["office_id"] . '"></td>'; // Checkbox
+                echo '<td>' . $row["office_name"] . '</td>';
+                echo '<td>' . $row["emei"] . '</td>';
+                echo '<td>' . $row["sn"] . '</td>';
+                echo '<td>' . $row["custodian"] . '</td>';
+                echo '<td>' . $row["rnss_acc"] . '</td>';
+                echo '<td>' . $row["remarks"] . '</td>';
+                echo '<td>' . getLegendName($row["legends_id"], $conn) . '</td>'; // Display legend name
+                echo '<td>' . getCategoryName($row["categories_id"], $conn) . '</td>'; // Display category name
+                echo '<td>' . $row["status"] . '</td>'; // Display status
+                echo '<td><button class="edit-button" type="button" onclick="editOfficeSupply(' . $row["office_id"] . ', \'' . $row["office_name"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["remarks"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
                 echo '</tr>';
-                echo '</thead>';
-                echo '<tbody>';
+            }
 
-                // Output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo '<tr>';
-                    echo '<td><input type="checkbox" name="office_ids[]" value="' . $row["office_id"] . '"></td>'; // Checkbox
-                    echo '<td>' . $row["office_name"] . '</td>';
-                    echo '<td>' . $row["emei"] . '</td>';
-                    echo '<td>' . $row["sn"] . '</td>';
-                    echo '<td>' . $row["custodian"] . '</td>';
-                    echo '<td>' . $row["rnss_acc"] . '</td>';
-                    echo '<td>' . $row["remarks"] . '</td>';
-                    echo '<td>' . getLegendName($row["legends_id"], $conn) . '</td>'; // Display legend name
-                    echo '<td>' . getCategoryName($row["categories_id"], $conn) . '</td>'; // Display category name
-                    echo '<td>' . $row["status"] . '</td>'; // Display status
-
-                    echo '<td><button class="edit-button" type="button" onclick="editOfficeSupply(' . $row["office_id"] . ', \'' . $row["office_name"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["owner"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["remarks"] . '\')">Edit</button></td>';
-                    echo '</tr>';
-                }
-                echo '</tbody>';
-                echo '</table>';
-                echo '</div>'; // End of table-container
-                echo '</form>';
-            } else {
+            echo '</tbody>';
+            echo '</table>';
+            echo '</div>'; // End of table-container
+            echo '</form>';
+        } else {
             echo "No office supplies found.";
         }
         $conn->close();
@@ -251,8 +262,6 @@ table {
             <input type="text" id="emei" name="emei" placeholder="Enter IMEI" >
             <br><label for="sn">Serial:</label>
             <input type="text" id="sn" name="sn" placeholder="Enter serial number" ><br>
-            <label for="owner">Owner:</label>
-            <input type="text" id="owner" name="owner" placeholder="Enter owner" >
             <label for="custodian">Custodian:</label>
             <input type="text" id="custodian" name="custodian" placeholder="Enter custodian" >
             <label for="rnss_acc">RNSS Account:</label>
@@ -319,8 +328,6 @@ table {
             <input type="text" id="edit_emei" name="edit_emei" placeholder="Enter IMEI" >
             <label for="edit_sn">Serial:</label>
             <input type="text" id="edit_sn" name="edit_sn" placeholder="Enter serial number" ><br>
-            <label for="edit_owner">Owner:</label>
-            <input type="text" id="edit_owner" name="edit_owner" placeholder="Enter owner" >
             <label for="edit_custodian">Custodian:</label>
             <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" >
             <label for="edit_rnss_acc">RNSS Account:</label>
@@ -389,12 +396,11 @@ table {
 
 
 // Show edit modal
-function editOfficeSupply(id, name, emei, sn, owner, custodian, rnss_acc, remarks, categories_id, legends_id, status) {
+function editOfficeSupply(id, name, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id, status) {
     document.getElementById('edit_office_id').value = id;
     document.getElementById('edit_office_name').value = name;
     document.getElementById('edit_emei').value = emei;
     document.getElementById('edit_sn').value = sn;
-    document.getElementById('edit_owner').value = owner;
     document.getElementById('edit_custodian').value = custodian;
     document.getElementById('edit_rnss_acc').value = rnss_acc;
     document.getElementById('edit_remarks').value = remarks;

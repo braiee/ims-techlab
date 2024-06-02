@@ -44,23 +44,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $errorMessage = "Error adding creative tool: " . $conn->error;
         }
-    } elseif (isset($_POST['delete'])) {
+    } elseif ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_creative_tool'])) {
         // Handle delete action
         if (isset($_POST['creative_ids'])) {
             $creative_ids = $_POST['creative_ids'];
             $creative_ids_str = "'" . implode("','", $creative_ids) . "'";
-            $sql = "DELETE FROM creative_tools WHERE creative_id IN ($creative_ids_str)";
+            
+            // Get current user's username
+            $current_user = $_SESSION['username'];
+            
+            // Get current timestamp
+            $current_timestamp = date("Y-m-d H:i:s");
+            
+            $sql = "UPDATE creative_tools SET status = 'Deleted', delete_timestamp = '$current_timestamp', deleted_by = '$current_user' WHERE creative_id IN ($creative_ids_str)";
             
             if ($conn->query($sql) === TRUE) {
-                $successMessage = "Creative tools deleted successfully.";
+                $successMessage = "Creative tools marked as deleted successfully.";
             } else {
-                $errorMessage = "Error deleting creative tools: " . $conn->error;
+                $errorMessage = "Error marking creative tools as deleted: " . $conn->error;
             }
         } else {
             $errorMessage = "No creative tools selected to delete.";
         }
     }
+    
 }
+
+
 
 // Check if the form for editing a creative tool is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool'])) {
@@ -103,10 +113,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
 
 
 // SQL query to fetch creative tool data
-$sql = "SELECT ct.creative_id, ct.creative_name, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.status, ct.categories_id, ct.legends_id, c.categories_name,  l.legends_name
+$sql = "SELECT ct.creative_id, ct.creative_name, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.status, ct.categories_id, ct.legends_id, c.categories_name, l.legends_name
         FROM creative_tools ct 
         LEFT JOIN categories c ON ct.categories_id = c.categories_id
-        LEFT JOIN legends l ON ct.legends_id = l.legends_id";
+        LEFT JOIN legends l ON ct.legends_id = l.legends_id
+        WHERE ct.status != 'Deleted'";
 $result = $conn->query($sql);
 
 
@@ -328,19 +339,26 @@ $result = $conn->query($sql);
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-<a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+<a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
     <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item "><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
+
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item active"><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item "><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
 
 <!-- Header box container -->
@@ -372,7 +390,7 @@ $result = $conn->query($sql);
             echo '<h2 style="color: #5D9C59;">Manage Creative Tools</h2>';
          
             
-            echo '<input type="submit" name="delete" value="Delete">';
+            echo '<input type="submit" name="delete_creative_tool" value="Delete">';
             echo '</div>';
                
             if (!empty($successMessage)) {

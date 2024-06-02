@@ -84,59 +84,95 @@ switch ($table) {
         ) AS combined_data";
         break;
 
+        case 'Borrowed Items':
+            $sql = "
+            SELECT 
+                bi.borrow_id,
+                bi.status,
+                bi.return_date AS duration,
+                bi.borrow_date,
+                COALESCE(ct.creative_name, gm.gadget_name, os.office_name, vo.item_name) AS item_name,
+                CASE 
+                    WHEN ct.creative_id IS NOT NULL THEN 'Creative Tools'
+                    WHEN gm.gadget_id IS NOT NULL THEN 'Gadget Monitor'
+                    WHEN os.office_id IS NOT NULL THEN 'Office Supplies'
+                    WHEN vo.vendor_id IS NOT NULL THEN 'Vendor Owned'
+                    ELSE 'Unknown'
+                END AS category,
+                u.username  -- This fetches the username associated with the user_id
+            FROM 
+                borrowed_items bi
+            LEFT JOIN creative_tools ct ON bi.item_id = ct.creative_id
+            LEFT JOIN gadget_monitor gm ON bi.item_id = gm.gadget_id
+            LEFT JOIN office_supplies os ON bi.item_id = os.office_id
+            LEFT JOIN vendor_owned vo ON bi.item_id = vo.vendor_id
+            LEFT JOIN users u ON bi.user_id = u.user_id  -- Joining the users table to fetch the username
+            LIMIT ?, ?
+            ";
+            $count_sql = "SELECT COUNT(bi.borrow_id) AS total FROM borrowed_items bi";
+            break;
+        
     default:
         // Default to the 'ticketing' table if no valid table is provided
-        $sql = "SELECT ticket_id, task_name, description, status, assigned_to, date_created FROM ticketing_table LIMIT ?, ?";
-        $count_sql = "SELECT COUNT(ticket_id) AS total FROM ticketing_table";
+        $sql = ""; // Set to empty string since we don't fetch tickets
         break;
 }
 
-// Prepare and execute the main SQL query
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $starting_limit_number, $results_per_page);
-$stmt->execute();
-$result = $stmt->get_result();
-
-// Fetch data from the result set
-$data = [];
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
-}
-
-// Calculate total number of results and total pages for pagination
-$total_results = $conn->query($count_sql)->fetch_assoc()['total'];
-$total_pages = ceil($total_results / $results_per_page);
-
-// Prepare response based on the table
+// Prepare and execute the main SQL query if SQL is not empty
 $response = [];
-switch ($table) {
-    case 'Vendor Owned Devices':
-        $response = ['vendor' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Categories':
-        $response = ['categories' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Supplies':
-        $response = ['supplies' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Creative Tools':
-        $response = ['creative_tools' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Location':
-        $response = ['locations' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Device Monitors':
-        $response = ['gadget_monitor' => $data, 'total_pages' => $total_pages];
-        break;
-    case 'Product':
-        $response = ['products' => $data, 'total_pages' => $total_pages];
-        break;
-    default:
-        $response = ['tickets' => $data, 'total_pages' => $total_pages];
-        break;
-}
+if (!empty($sql)) {
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $starting_limit_number, $results_per_page);
+    $stmt->execute();    
+    $result = $stmt->get_result();
 
-// Send JSON response back to the client
-echo json_encode($response);
+    // Fetch data from the result set
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+
+    // Calculate total number of results and total pages for pagination
+    $total_results = $conn->query($count_sql)->fetch_assoc()['total'];
+    $total_pages = ceil($total_results / $results_per_page);
+
+    
+
+    // Prepare response based on the table
+    switch ($table) {
+        case 'Vendor Owned Devices':
+            $response = ['vendor' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Categories':
+            $response = ['categories' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Supplies':
+            $response = ['supplies' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Creative Tools':
+            $response = ['creative_tools' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Location':
+            $response = ['locations' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Device Monitors':
+            $response = ['gadget_monitor' => $data, 'total_pages' => $total_pages];
+            break;
+        case 'Product':
+            $response = ['products' => $data, 'total_pages' => $total_pages];
+            break;
+            case 'Borrowed Items':
+                $response = ['borrowed_items' => $data, 'total_pages' => $total_pages];
+                break;
+    
+        default:
+            // Handle default case if needed
+            break;
+    }
+
+    // Send JSON response back to the client
+    echo json_encode($response);
+}
 ?>
+
 

@@ -20,7 +20,7 @@ unset($_SESSION['success_message']);
 unset($_SESSION['error_message']);
 
 // SQL query to fetch categories data
-$sql = "SELECT categories_id, categories_name FROM categories";
+$sql = "SELECT categories_id, categories_name, abv FROM categories";
 $result = $conn->query($sql);
 
 ?>
@@ -38,19 +38,26 @@ $result = $conn->query($sql);
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-<a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+<a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-    <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
     <a href="category.php" class="nav-item active"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <span class="non-clickable-item">Borrow</span>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
+
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
     <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
-    <span class="non-clickable-item">Summary</span>
-    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <span class="non-clickable-item">Settings</span>
+    <a href="users.php" class="nav-item "><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -93,26 +100,34 @@ $result = $conn->query($sql);
         <?php endif; ?>
             <?php
             if ($result->num_rows > 0) {
+
+                echo '<div class="table-container">'; // Add a container div for the table
+
                 echo '<table>';
                 echo '<thead>';
                 echo '<tr>';
                 echo '<th></th>'; // Checkbox column
                 echo '<th>Category</th>';
+                echo '<th>Abbreviation</th>';
                 echo '<th>Action</th>'; // Edit button column
                 echo '</tr>';
                 echo '</thead>';
                 echo '<tbody>';
 
                 // Output data of each row
-                while($row = $result->fetch_assoc()) {
+                while ($row = $result->fetch_assoc()) {
                     echo '<tr>';
-                    echo '<td><input type="checkbox" name="select_category[]" value="' . $row["categories_id"] . '"></td>'; // Checkbox
-                    echo '<td>' . $row["categories_name"] . '</td>';
-                    echo '<td><button type="button" onclick="showEditCategoryModal(' . $row["categories_id"] . ', \'' . $row["categories_name"] . '\')" class="btn-edit">Edit</button></td>'; // Edit button
+                    echo '<td><input type="checkbox" name="select_category[]" value="' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . '"></td>'; // Checkbox
+                    echo '<td>' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '</td>';
+                    echo '<td>' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '</td>';
+                    echo '<td><button type="button" onclick="showEditCategoryModal(' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . ', \'' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '\', \'' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '\')" class="btn-edit">Edit</button></td>';
                     echo '</tr>';
                 }
+                
                 echo '</tbody>';
                 echo '</table>';
+                echo '</div>';
+
            
             } else {
                 echo "No categories found.";
@@ -134,6 +149,8 @@ $result = $conn->query($sql);
             <h2>Add Category</h2>
             <label for="category_name">Category Name:</label>
             <input type="text" id="category_name" name="category_name" required>
+            <label for="category_abv">Abbreviation:</label>
+            <input type="text" id="category_abv" placeholder="Enter Abbreviation" name="category_abv" required>
             <input type="submit" name="add_category" value="Add Category">
         </form>
     </div>
@@ -148,6 +165,9 @@ $result = $conn->query($sql);
             <input type="hidden" id="edit_category_id" name="edit_category_id">
             <label for="edit_category_name">Category Name:</label>
             <input type="text" id="edit_category_name" name="edit_category_name" required>
+            <label for="edit_category_abv">Abbreviation:</label>
+            <input type="text" id="edit_category_abv" name="edit_category_abv" required>
+
             <input type="submit" name="edit_category" value="Edit Category">
         </form>
     </div>
@@ -170,9 +190,11 @@ $result = $conn->query($sql);
     }
 
     // Show Edit Category Modal
-    function showEditCategoryModal(category_id, category_name) {
+    function showEditCategoryModal(category_id, category_name, category_abv) {
         document.getElementById('edit_category_id').value = category_id;
         document.getElementById('edit_category_name').value = category_name;
+        document.getElementById('edit_category_abv').value = category_abv;
+
         editCategoryModal.style.display = "block";
     }
 

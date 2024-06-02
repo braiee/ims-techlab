@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    // If not logged in, redirect to the login page
+    header("Location: login.php");
+    exit();
+}
+
 // Include database connection
 include 'db-connect.php';
 
@@ -14,12 +21,11 @@ $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM cat
 // Fetch legends from the database
 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
-// Add new gadget
+// Check if the form for adding gadget monitor is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     // Retrieve form data
+    // Adjust the form field names accordingly
     $gadget_name = $_POST['gadget_name'];
-    $categories_id = $_POST['categories_id'];
-    $legends_id = $_POST['legends_id']; // Add legends_id retrieval
     $color = $_POST['color'];
     $emei = $_POST['emei'];
     $sn = $_POST['sn'];
@@ -28,26 +34,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     $condition = $_POST['condition'];
     $purpose = $_POST['purpose'];
     $remarks = $_POST['remarks'];
-    $status = $_POST['status']; // Add status retrieval
+    $categories_id = $_POST['categories_id'];
+    $legends_id = $_POST['legends_id'];
+    $status = $_POST['status'];
 
-    // SQL query to insert data into the gadget_monitor table
-    $sql = "INSERT INTO gadget_monitor (gadget_name, categories_id, legends_id, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, status) 
-            VALUES ('$gadget_name', '$categories_id', '$legends_id', '$color', '$qty', '$emei', '$sn',  '$custodian', '$rnss_acc', '$condition', '$purpose', '$remarks', '$status')";
-
-    if ($conn->query($sql) === TRUE) {
-        $successMessage = "New gadget added successfully.";
+    // Prepare SQL statement to insert gadget monitor into the database using prepared statement
+    $sql = "INSERT INTO gadget_monitor (gadget_name, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, categories_id, legends_id, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssssssss", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status);
+    
+    if ($stmt->execute()) {
+        $successMessage = "New gadget monitor added successfully.";
     } else {
-        $errorMessage = "Error adding gadget: " . $conn->error;
+        $errorMessage = "Error adding new gadget monitor: " . $conn->error;
     }
+
+    $stmt->close();
 }
 
-// Edit gadget details
+// Handle form submissions for editing gadget monitor
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
-    // Retrieve form data
+    // Get form data
     $gadget_id = $_POST['edit_gadget_id'];
     $gadget_name = $_POST['edit_gadget_name'];
-    $categories_id = $_POST['edit_categories_id'];
-    $legends_id = $_POST['edit_legends_id']; // Add legends_id retrieval
     $color = $_POST['edit_color'];
     $emei = $_POST['edit_emei'];
     $sn = $_POST['edit_sn'];
@@ -56,38 +66,60 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
     $condition = $_POST['edit_condition'];
     $purpose = $_POST['edit_purpose'];
     $remarks = $_POST['edit_remarks'];
-    $status = $_POST['edit_status']; // Add status retrieval
+    $categories_id = $_POST['edit_categories_id'];
+    $legends_id = $_POST['edit_legends_id'];
+    $status = $_POST['edit_status'];
 
-    // SQL query to update gadget details
-    $sql = "UPDATE gadget_monitor SET gadget_name='$gadget_name', categories_id='$categories_id', legends_id='$legends_id', color='$color',  emei='$emei', sn='$sn', custodian='$custodian', rnss_acc='$rnss_acc', `condition`='$condition', purpose='$purpose', remarks='$remarks', status='$status' WHERE gadget_id=$gadget_id";
-
-    if ($conn->query($sql) === TRUE) {
-        $successMessage = "Gadget details updated successfully.";
+    // Prepare SQL statement for updating data in gadget_monitor table using prepared statement
+    $sql = "UPDATE gadget_monitor 
+            SET gadget_name=?, color=?, emei=?, sn=?, custodian=?, rnss_acc=?, `condition`=?, purpose=?, remarks=?, categories_id=?, legends_id=?, status=?
+            WHERE gadget_id=?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssssssssssssi", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $gadget_id);
+    
+    if ($stmt->execute()) {
+        $successMessage = "Gadget monitor updated successfully.";
     } else {
-        $errorMessage = "Error updating gadget details: " . $conn->error;
+        $errorMessage = "Error updating gadget monitor: " . $conn->error;
     }
+
+    $stmt->close();
 }
 
-
-// Delete gadget
+// Delete gadget monitors
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
-    // Retrieve gadget ID to delete
-    $gadget_id = $_POST['delete_gadget_id'];
-
-    // SQL query to delete gadget
-    $sql = "DELETE FROM gadget_monitor WHERE gadget_id=$gadget_id";
-
-    if ($conn->query($sql) === TRUE) {
-        $successMessage = "Gadget deleted successfully.";
+    // Handle delete action
+    // Get gadget monitor IDs and update their status to "Deleted" in the database
+    if (isset($_POST['gadget_ids'])) {
+        $gadget_ids = $_POST['gadget_ids'];
+        $gadget_ids_str = "'" . implode("','", $gadget_ids) . "'";
+        
+        // Get current user's username
+        $current_user = $_SESSION['username'];
+        
+        // Get current timestamp
+        $current_timestamp = date("Y-m-d H:i:s");
+        
+        $sql = "UPDATE gadget_monitor SET status = 'Deleted', delete_timestamp = '$current_timestamp', deleted_by = '$current_user' WHERE gadget_id IN ($gadget_ids_str)";
+        
+        if ($conn->query($sql) === TRUE) {
+            $successMessage = "Gadget monitors marked as deleted successfully.";
+        } else {
+            $errorMessage = "Error marking gadget monitors as deleted: " . $conn->error;
+        }
     } else {
-        $errorMessage = "Error deleting gadget: " . $conn->error;
+        $errorMessage = "No gadget monitors selected to delete.";
     }
 }
 
-// Close database connection
-$conn->close();
+// Redirect back to gadget_monitor.php with success or error message
+if (!empty($successMessage)) {
+    header("Location: gadgetmonitor.php?success=" . urlencode($successMessage));
+    exit();
+} elseif (!empty($errorMessage)) {
+    header("Location: gadgetmonitor.php?error=" . urlencode($errorMessage));
+    exit();
+}
 
-// Redirect back to the gadgetmonitor.php page with success or error message
-header("Location: gadgetmonitor.php?successMessage=$successMessage&errorMessage=$errorMessage");
-exit();
+$conn->close();
 ?>
