@@ -141,8 +141,8 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
@@ -314,14 +314,13 @@ function generateBorrowedItemsTable(data) {
 
 
 function generateProductTable(data) {
-    var tableContent = '<table><thead><tr><th>Source</th><th>Item</th><th>Category</th><th>Location</th><th>Description</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Condition</th><th>Purpose</th><th>Status</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Tagging</th><th>Asset Number</th><th>Item Name</th><th>Owner</th><th>Status</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.source + '</td><td>' + item.name + '</td><td>' + item.category + '</td><td>' + item.legends_name + '</td><td>' + item.descriptions + '</td><td>' + item.color + '</td><td>' + item.imei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.remarks + '</td><td>' + item.condition + '</td><td>' + item.purpose + '</td><td>' + item.status + '</td></tr>';
+        tableContent += '<tr><td>' + item.tagging + '</td><td>' + item.asset_number + '</td><td>' + item.name + '</td><td>' + item.owner + '</td><td>' + item.status + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;
 }
-
 
 
 function generateDeviceMonitorsTable(data) {
@@ -335,9 +334,9 @@ function generateDeviceMonitorsTable(data) {
 
 
 function generateLocationTable(data) {
-    var tableContent = '<table><thead><tr><th>Legends Name</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Legends Name</th><th>Abbreviation</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.legends_name + '</td></tr>';
+        tableContent += '<tr><td>' + item.legends_name + '</td><td>' + item.abv + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;
@@ -354,18 +353,18 @@ function generateVendorOwnedTable(data) {
 }
 
 function generateCategoriesTable(data) {
-    var tableContent = '<table><thead><tr><th>Categories Name</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Categories Name</th><th>Abbreviations</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.categories_name + '</td></tr>';
+        tableContent += '<tr><td>' + item.categories_name + '</td><td>' + item.abv + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;
 }
 
 function generateSuppliesTable(data) {
-    var tableContent = '<table><thead><tr><th>Item Name</th><th>Category</th><th>Location</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Status</th><th>Date Added</th></tr></thead><tbody>';
+    var tableContent = '<table><thead><tr><th>Item Name</th><th>Category</th><th>Location</th><th>Custodian</th><th>Remarks</th><th>Status</th><th>Date Added</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.office_name + '</td><td>' + item.categories_name + '</td><td>' + item.legends_name + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.remarks + '</td><td>' + item.status + '</td><td>' + item.date_added + '</td></tr>';
+        tableContent += '<tr><td>' + item.office_name + '</td><td>' + item.categories_name + '</td><td>' + item.legends_name + '</td><td>' + item.custodian + '</td><td>' + item.remarks + '</td><td>' + item.status + '</td><td>' + item.date_added + '</td></tr>';
     });
     tableContent += '</tbody></table>';
     return tableContent;

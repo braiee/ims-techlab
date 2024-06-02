@@ -1,26 +1,58 @@
 <?php
 session_start();
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // If not logged in, redirect to the login page
-    header("Location: login.php");
-    exit();
-}
-
 // Include database connection
 include 'db-connect.php';
 
-// Initialize message variables
-$successMessage = "";
-$errorMessage = "";
-
-// Fetch categories from the database
-$categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
-
-// Fetch legends from the database
-$legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
-
+// Function to generate unique_gadget_id
+function generateUniqueGadgetID($conn, $gadget_id) {
+    // Fetch necessary information for generating unique_gadget_id
+    $sql = "SELECT l.abv AS legends_abv, c.abv AS categories_abv, gm.date_added
+            FROM gadget_monitor gm
+            JOIN legends l ON gm.legends_id = l.legends_id
+            JOIN categories c ON gm.categories_id = c.categories_id
+            WHERE gm.gadget_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $gadget_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // Fetch data from the query result
+    $row = $result->fetch_assoc();
+    $legends_abv = $row['legends_abv'];
+    $categories_abv = $row['categories_abv'];
+    $date_added = $row['date_added'];
+    
+    // Close the prepared statement
+    $stmt->close();
+    
+    // Extract year from the date_added
+    $year = date('Y', strtotime($date_added));
+    
+    // Fetch the count of gadgets added in the same year
+    $sql = "SELECT COUNT(*) AS count_gadgets
+            FROM gadget_monitor
+            WHERE YEAR(date_added) = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("s", $year);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    // Fetch count of gadgets
+    $row = $result->fetch_assoc();
+    $count_gadgets = $row['count_gadgets'];
+    
+    // Close the prepared statement
+    $stmt->close();
+    
+    // Pad the count with three zeros
+    $padded_count = str_pad($count_gadgets + 1, 3, '0', STR_PAD_LEFT);
+    
+    // Generate unique_gadget_id
+    $unique_gadget_id = substr($legends_abv, 0, 3) . '-' . substr($categories_abv, 0, 3) . '-' . $year . '-' . $padded_count;
+    
+    return $unique_gadget_id;
+}
 // Check if the form for adding gadget monitor is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     // Retrieve form data
@@ -37,14 +69,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     $categories_id = $_POST['categories_id'];
     $legends_id = $_POST['legends_id'];
     $status = $_POST['status'];
+    $ref_rnss = $_POST['ref_rnss']; // Add this line to retrieve ref_rnss value
+    $owner = $_POST['owner']; // Add this line to retrieve owner value
 
     // Prepare SQL statement to insert gadget monitor into the database using prepared statement
-    $sql = "INSERT INTO gadget_monitor (gadget_name, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, categories_id, legends_id, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO gadget_monitor (gadget_name, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, categories_id, legends_id, status, ref_rnss, owner) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssss", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status);
+    $stmt->bind_param("ssssssssssssss", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner);
     
     if ($stmt->execute()) {
+        // Get the last inserted ID
+        $last_insert_id = $conn->insert_id;
+        // Generate unique_gadget_id
+        $unique_gadget_id = generateUniqueGadgetID($conn, $last_insert_id);
+        // Update the unique_gadget_id for the inserted row
+        $update_sql = "UPDATE gadget_monitor SET unique_gadget_id = ? WHERE gadget_id = ?";
+        $update_stmt = $conn->prepare($update_sql);
+        $update_stmt->bind_param("si", $unique_gadget_id, $last_insert_id);
+        $update_stmt->execute();
+        
         $successMessage = "New gadget monitor added successfully.";
     } else {
         $errorMessage = "Error adding new gadget monitor: " . $conn->error;
@@ -69,22 +113,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
     $categories_id = $_POST['edit_categories_id'];
     $legends_id = $_POST['edit_legends_id'];
     $status = $_POST['edit_status'];
+    $ref_rnss = $_POST['edit_ref_rnss']; // Add this line to retrieve ref_rnss value
+    $owner = $_POST['edit_owner']; // Add this line to retrieve owner value
 
     // Prepare SQL statement for updating data in gadget_monitor table using prepared statement
     $sql = "UPDATE gadget_monitor 
-            SET gadget_name=?, color=?, emei=?, sn=?, custodian=?, rnss_acc=?, `condition`=?, purpose=?, remarks=?, categories_id=?, legends_id=?, status=?
+            SET gadget_name=?, color=?, emei=?, sn=?, custodian=?, rnss_acc=?, `condition`=?, purpose=?, remarks=?, categories_id=?, legends_id=?, status=?, ref_rnss=?, owner=?
             WHERE gadget_id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssssi", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $gadget_id);
-    
-    if ($stmt->execute()) {
-        $successMessage = "Gadget monitor updated successfully.";
+    // Check if the prepared statement is successfully created
+    if ($stmt) {
+        // Bind parameters to the prepared statement
+        $stmt->bind_param("ssssssssssssssi", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner, $gadget_id);
+        // Execute the prepared statement
+        if ($stmt->execute()) {
+            $successMessage = "Gadget monitor updated successfully.";
+        } else {
+            $errorMessage = "Error updating gadget monitor: " . $conn->error;
+        }
+        // Close the prepared statement
+        $stmt->close();
     } else {
-        $errorMessage = "Error updating gadget monitor: " . $conn->error;
+        // Error in preparing the statement
+        $errorMessage = "Error preparing update statement: " . $conn->error;
     }
-
-    $stmt->close();
 }
+
 
 // Delete gadget monitors
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
@@ -111,6 +165,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
         $errorMessage = "No gadget monitors selected to delete.";
     }
 }
+
+
 
 // Redirect back to gadget_monitor.php with success or error message
 if (!empty($successMessage)) {

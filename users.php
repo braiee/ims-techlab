@@ -135,8 +135,8 @@ button {
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
@@ -146,6 +146,8 @@ button {
     <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
     <span class="non-clickable-item">Settings</span>
     <a href="users.php" class="nav-item active"><span class="icon-placeholder"></span>Users</a>
+    <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
 
     <!-- Header box container -->

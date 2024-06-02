@@ -1,4 +1,7 @@
 <?php
+
+date_default_timezone_set('Asia/Manila');
+
 session_start();
 
 // Check if the user is logged in
@@ -29,14 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $purpose = $_POST['purpose'];
         $turnover_tsto = $_POST['turnover_tsto'];
         $return_vendor = $_POST['return_vendor'];
-        $categories_id = $_POST['categories_id'];
         $legends_id = $_POST['legends_id'];
-        $status = $_POST['status'];
+        $project_lead = $_POST['project_lead']; // Add project_lead parameter
 
-        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, status)
+        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, project_lead)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssiss", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor, $categories_id, $legends_id, $status);
+        $stmt->bind_param("ssssssiss", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor,  $legends_id, $project_lead);
 
         if ($stmt->execute()) {
             $successMessage = "Vendor-owned item added successfully.";
@@ -46,33 +48,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 
-// Edit vendor-owned item
-if (isset($_POST['edit_vendor_owned'])) {
-    $vendor_id = $_POST['edit_vendor_id'];
-    $item_name = $_POST['edit_item_name'];
-    $vendor_name = $_POST['edit_vendor_name'];
-    $contact_person = $_POST['edit_contact_person'];
-    $purpose = $_POST['edit_purpose'];
-    $turnover_tsto = $_POST['edit_turnover_tsto'];
-    $return_vendor = $_POST['edit_return_vendor'];
-    $categories_id = $_POST['edit_categories_id'];
-    $legends_id = $_POST['edit_legends_id'];
-    $status = $_POST['edit_status'];
-
-    $sql = "UPDATE vendor_owned 
-            SET item_name=?, vendor_name=?, contact_person=?, purpose=?, turnover_tsto=?, return_vendor=?, categories_id=?, legends_id=?, status=? 
-            WHERE vendor_id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssissi", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor, $categories_id, $legends_id, $status, $vendor_id);
-
-    if ($stmt->execute()) {
-        $successMessage = "Vendor-owned item updated successfully.";
-    } else {
-        $errorMessage = "Error updating vendor-owned item: " . $conn->error;
+    // Edit vendor-owned item
+    if (isset($_POST['edit_vendor_owned'])) {
+        $vendor_id = $_POST['edit_vendor_id'];
+        $item_name = $_POST['edit_item_name'];
+        $vendor_name = $_POST['edit_vendor_name'];
+        $contact_person = $_POST['edit_contact_person'];
+        $purpose = $_POST['edit_purpose'];
+        $turnover_tsto = $_POST['edit_turnover_tsto'];
+        $return_vendor = $_POST['edit_return_vendor'];
+        $legends_id = $_POST['edit_legends_id'];
+        $project_lead = $_POST['edit_project_lead']; // Add project_lead parameter
+    
+        $sql = "UPDATE vendor_owned 
+                SET item_name=?, vendor_name=?, contact_person=?, purpose=?, turnover_tsto=?, return_vendor=?, legends_id=?, project_lead=?
+                WHERE vendor_id=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssssisi", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor, $legends_id, $project_lead, $vendor_id);
+    
+        if ($stmt->execute()) {
+            $successMessage = "Vendor-owned item updated successfully.";
+        } else {
+            $errorMessage = "Error updating vendor-owned item: " . $conn->error;
+        }
+        $stmt->close();
     }
-    $stmt->close();
-}
-
+    
 // Delete vendor-owned items
 if (isset($_POST['delete_vendor_owned'])) {
     if (isset($_POST['vendor_ids'])) {
@@ -184,8 +185,8 @@ input[type="date"] {
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
@@ -237,34 +238,32 @@ input[type="date"] {
             echo '<th></th>'; // Checkbox column
             echo '<th>Item Name</th>';
             echo '<th>Vendor Name</th>';
-            echo '<th>Contact Person</th>';
+            echo '<th>Con. Person</th>';
             echo '<th>Purpose</th>';
-            echo '<th>Turnover (TSTO)</th>';
-            echo '<th>Date of Ret.</th>';
-            echo '<th>Cat.</th>';
             echo '<th>Loc.</th>';
-            echo '<th>Status</th>';
+            echo '<th>Turnover (TSTO)</th>';
+            echo '<th>Project Lead.</th>';
+            echo '<th>Date of Ret.</th>';
             echo '<th>Edit</th>';
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
 
-            // Output data of each row
-            while ($row = $result->fetch_assoc()) {
-                echo '<tr>';
-                echo '<td><input type="checkbox" name="vendor_ids[]" value="' . $row["vendor_id"] . '"></td>'; // Checkbox
-                echo '<td>' . $row["item_name"] . '</td>';
-                echo '<td>' . $row["vendor_name"] . '</td>';
-                echo '<td>' . $row["contact_person"] . '</td>';
-                echo '<td>' . $row["purpose"] . '</td>';
-                echo '<td>' . $row["turnover_tsto"] . '</td>';
-                echo '<td>' . $row["return_vendor"] . '</td>';
-                echo '<td>' . $row["categories_name"] . '</td>';
-                echo '<td>' . $row["legends_name"] . '</td>';
-                echo '<td>' . $row["status"] . '</td>';
-                echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $row["vendor_id"] . '\', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
-                echo '</tr>';
-            }
+    // Output data of each row
+    while ($row = $result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td><input type="checkbox" name="vendor_ids[]" value="' . $row["vendor_id"] . '"></td>'; // Checkbox
+        echo '<td>' . $row["item_name"] . '</td>';
+        echo '<td>' . $row["vendor_name"] . '</td>';
+        echo '<td>' . $row["contact_person"] . '</td>';
+        echo '<td>' . $row["purpose"] . '</td>';
+        echo '<td>' . $row["legends_name"] . '</td>';
+        echo '<td>' . $row["turnover_tsto"] . '</td>';
+        echo '<td>' . $row["project_lead"] . '</td>'; // Display Project Lead data
+        echo '<td>' . $row["return_vendor"] . '</td>';
+        echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $row["vendor_id"] . '\', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\', \'' . $row["project_lead"] . '\')">Edit</button></td>'; // Include Project Lead in the edit button
+        echo '</tr>';
+    }
             echo '</tbody>';
             echo '</table>';
             echo '</div>'; // Close the table container
@@ -298,22 +297,9 @@ input[type="date"] {
             <input type="text" id="purpose" name="purpose"><br>
             <label for="turnover_tsto">Turnover (TSTO):</label><br>
             <input type="date" id="turnover_tsto" name="turnover_tsto" required><br>
-            <label for="return_vendor">Date of Return to Vendor:</label><br>
-            <input type="date" id="return_vendor" name="return_vendor"><br>
-            <label for="categories_id">Category:</label>
-            <select id="categories_id" name="categories_id" >
-                <option value="">Select Category</option>
-                <?php
-                if ($categoriesResult->num_rows > 0) {
-                    while($category = $categoriesResult->fetch_assoc()) {
-                        echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
-                    }
-                }
-                ?>
-            </select>
-            <label for="legends_id">Legends:</label>
+            <label for="legends_id">Location:</label>
             <select id="legends_id" name="legends_id" >
-                <option value="">Select Legends</option>
+                <option value="">Select Location</option>
                 <?php
                 // Reset legendsResult cursor
                 $legendsResult->data_seek(0);
@@ -323,15 +309,11 @@ input[type="date"] {
                     }
                 }
                 ?>
-            </select>
-            <label for="status">Status:</label><br>
-            <select id="status" name="status" >
-    <option value="Available">Available</option>
-    <option value="Pending">Pending</option>
-    <option value="Approved">Approved</option>
-    <option value="Returned">Returned</option>
-</select>
-<br><br>
+            </select><br>
+            <label for="project_lead">Project Lead:</label><br>
+            <input type="text" id="project_lead" name="project_lead"><br> <!-- Add Project Lead field -->
+            <label for="return_vendor">Date of Return to Vendor:</label><br>
+            <input type="date" id="return_vendor" name="return_vendor"><br>
             <input type="submit" name="add_vendor_owned" value="Add" class="btn-add">
         </form>
     </div>
@@ -352,26 +334,9 @@ input[type="date"] {
             <input type="text" id="edit_contact_person" name="edit_contact_person"><br>
             <label for="edit_purpose">Purpose:</label><br>
             <input type="text" id="edit_purpose" name="edit_purpose"><br>
-            <label for="edit_turnover_tsto">Turnover (TSTO):</label><br>
-            <input type="date" id="edit_turnover_tsto" name="edit_turnover_tsto" required><br>
-            <label for="edit_return_vendor">Date of Return to Vendor:</label><br>
-            <input type="date" id="edit_return_vendor" name="edit_return_vendor"><br>
-
-            <label for="edit_categories_id">Category:</label>
-            <select id="edit_categories_id" name="edit_categories_id" >
-                <option value="">Select Category</option>
-                <?php
-                $categoriesResult->data_seek(0);
-                if ($categoriesResult->num_rows > 0) {
-                    while($category = $categoriesResult->fetch_assoc()) {
-                        echo '<option value="' . $category["categories_id"] . '">' . $category["categories_name"] . '</option>';
-                    }
-                }
-                ?>
-            </select>
-            <label for="edit_legends_id">Legends:</label>
+            <label for="edit_legends_id">Location:</label>
             <select id="edit_legends_id" name="edit_legends_id" >
-                <option value="">Select Legends</option>
+                <option value="">Select Location</option>
                 <?php
                 // Reset legendsResult cursor
                 $legendsResult->data_seek(0);
@@ -382,14 +347,13 @@ input[type="date"] {
                 }
                 ?>
             </select>
-            <label for="status">Status:</label><br>
+            <label for="edit_turnover_tsto">Turnover (TSTO):</label><br>
+            <input type="date" id="edit_turnover_tsto" name="edit_turnover_tsto" required><br>
+            <label for="edit_project_lead">Project Lead:</label><br> <!-- Add Project Lead field -->
+            <input type="text" id="edit_project_lead" name="edit_project_lead"><br> <!-- Add Project Lead field -->
+            <label for="edit_return_vendor">Date of Return to Vendor:</label><br>
+            <input type="date" id="edit_return_vendor" name="edit_return_vendor"><br>
 
-            <select id="edit_status" name="edit_status" >
-    <option value="Available">Available</option>
-    <option value="Pending">Pending</option>
-    <option value="Approved">Approved</option>
-    <option value="Returned">Returned</option>
-</select>
 <br><br>
             <input type="submit" name="edit_vendor_owned" value="Save" class="btn-edit">
         </form>
@@ -403,7 +367,7 @@ input[type="date"] {
         document.getElementById('addModal').style.display = "block";
     }
 
-    function openEditModal(vendor_id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, status) {
+    function openEditModal(vendor_id, item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, status, project_lead) {
     // Fill in the values in the edit form
     document.getElementById('edit_vendor_id').value = vendor_id;
     document.getElementById('edit_item_name').value = item_name;
@@ -412,15 +376,13 @@ input[type="date"] {
     document.getElementById('edit_purpose').value = purpose;
     document.getElementById('edit_turnover_tsto').value = turnover_tsto;
     document.getElementById('edit_return_vendor').value = return_vendor;
+    document.getElementById('edit_project_lead').value = project_lead; // Set the value for project_lead
 
-    // Set the selected value for categories_id
-    document.getElementById('edit_categories_id').value = categories_id;
+    
     
     // Set the selected value for legends_id
     document.getElementById('edit_legends_id').value = legends_id;
 
-    // Set the selected value for status
-    document.getElementById('edit_status').value = status;
 
     // Display the edit modal
     document.getElementById('editModal').style.display = "block";

@@ -18,12 +18,12 @@ switch ($table) {
         break;
 
     case 'Categories':
-        $sql = "SELECT categories_id, categories_name FROM categories LIMIT ?, ?";
+        $sql = "SELECT categories_id, categories_name, abv FROM categories LIMIT ?, ?";
         $count_sql = "SELECT COUNT(categories_id) AS total FROM categories";
         break;
 
     case 'Supplies':
-        $sql = "SELECT os.supp_id, os.office_name, os.emei, os.sn, os.custodian, os.rnss_acc, os.remarks, os.status, os.date_added, c.categories_name, l.legends_name 
+        $sql = "SELECT os.supp_id, os.office_name, os.custodian, os.remarks, os.status, os.date_added, c.categories_name, l.legends_name 
         FROM office_supplies os
         LEFT JOIN categories c ON os.categories_id = c.categories_id
         LEFT JOIN legends l ON os.legends_id = l.legends_id
@@ -32,7 +32,7 @@ switch ($table) {
         break;
 
     case 'Location':
-        $sql = "SELECT legends_name FROM legends LIMIT ?, ?";
+        $sql = "SELECT legends_name, abv FROM legends LIMIT ?, ?";
         $count_sql = "SELECT COUNT(legends_name) AS total FROM legends";
         break;
 
@@ -55,18 +55,18 @@ switch ($table) {
         break;
 
     case 'Product': // Handle 'Product' table
-        $sql = "SELECT source, name, IFNULL(c.categories_name, '') AS category, IFNULL(descriptions, '') AS descriptions, IFNULL(color, '') AS color, IFNULL(imei, '') AS imei, IFNULL(sn, '') AS sn, IFNULL(custodian, '') AS custodian, IFNULL(rnss_acc, '') AS rnss_acc, IFNULL(remarks, '') AS remarks, IFNULL(`condition`, '') AS `condition`, IFNULL(purpose, '') AS purpose, IFNULL(status, '') AS status, IFNULL(l.legends_name, '') AS legends_name 
+        $sql = "SELECT tagging, item, IFNULL(c.categories_name, '') AS category, IFNULL(descriptions, '') AS descriptions, IFNULL(color, '') AS color, IFNULL(imei, '') AS imei, IFNULL(sn, '') AS sn, IFNULL(custodian, '') AS custodian, IFNULL(rnss_acc, '') AS rnss_acc, IFNULL(remarks, '') AS remarks, IFNULL(`condition`, '') AS `condition`, IFNULL(purpose, '') AS purpose, IFNULL(status, '') AS status, IFNULL(l.legends_name, '') AS legends_name 
         FROM (
-            SELECT 'Vendor Owned' AS source, item_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, contact_person AS custodian, NULL AS rnss_acc, NULL AS remarks, NULL AS `condition`, NULL AS purpose, status, NULL AS legends_id
+            SELECT 'Vendor Owned' AS tagging, item_name AS item, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, contact_person AS custodian, NULL AS rnss_acc, NULL AS remarks, NULL AS `condition`, NULL AS purpose, status, NULL AS legends_id
             FROM vendor_owned
             UNION ALL
-            SELECT 'Office Supplies' AS source, office_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, emei AS imei, sn AS sn, custodian AS custodian, NULL AS rnss_acc, NULL AS remarks, NULL AS `condition`, NULL AS purpose, status, NULL AS legends_id
+            SELECT 'Office Supplies' AS tagging, office_name AS item, categories_id AS category, NULL AS descriptions, NULL AS color, custodian AS custodian, NULL AS remarks, NULL AS `condition`, NULL AS purpose, status, NULL AS legends_id
             FROM office_supplies
             UNION ALL
-            SELECT 'Gadget Monitor' AS source, gadget_name AS name, categories_id AS category, NULL AS descriptions, color AS color, emei AS imei, sn AS sn, custodian AS custodian, NULL AS rnss_acc, NULL AS remarks, `condition` AS `condition`, purpose AS purpose, status, legends_id
+            SELECT 'Gadget Monitor' AS tagging, gadget_name AS item, categories_id AS category, NULL AS descriptions, color AS color, emei AS imei, sn AS sn, custodian AS custodian, NULL AS rnss_acc, NULL AS remarks, `condition` AS `condition`, purpose AS purpose, status, legends_id
             FROM gadget_monitor
             UNION ALL
-            SELECT 'Creative Tools' AS source, creative_name AS name, categories_id AS category, descriptions AS descriptions, NULL AS color, emei AS imei, sn AS sn, custodian AS custodian, rnss_acc AS rnss_acc, remarks AS remarks, NULL AS `condition`, NULL AS purpose, status, legends_id
+            SELECT 'Creative Tools' AS tagging, creative_name AS item, categories_id AS category, descriptions AS descriptions, NULL AS color, emei AS imei, sn AS sn, custodian AS custodian, rnss_acc AS rnss_acc, remarks AS remarks, NULL AS `condition`, NULL AS purpose, status, legends_id
             FROM creative_tools
         ) AS combined_data
         LEFT JOIN categories c ON combined_data.category = c.categories_id

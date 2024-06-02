@@ -41,8 +41,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
     }
 }
 
+
+
 // SQL query to fetch gadget data excluding items with status "Deleted"
-$sql = "SELECT gm.gadget_id, gm.gadget_name, gm.categories_id, c.categories_name, gm.color, gm.emei, gm.sn,  gm.custodian, gm.rnss_acc, gm.`condition`, gm.purpose, gm.remarks, gm.legends_id, l.legends_name, gm.status
+$sql = "SELECT 
+            gm.unique_gadget_id,
+            gm.gadget_id, 
+            gm.gadget_name, 
+            gm.categories_id, 
+            c.categories_name, 
+            gm.color, 
+            gm.emei, 
+            gm.sn,  
+            gm.custodian, 
+            gm.rnss_acc, 
+            gm.`condition`, 
+            gm.purpose, 
+            gm.remarks, 
+            gm.legends_id, 
+            l.legends_name, 
+            gm.status,
+            gm.ref_rnss,
+            gm.owner
         FROM gadget_monitor gm 
         LEFT JOIN categories c ON gm.categories_id = c.categories_id
         LEFT JOIN legends l ON gm.legends_id = l.legends_id
@@ -191,8 +211,8 @@ $result = $conn->query($sql);
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
@@ -246,14 +266,16 @@ $result = $conn->query($sql);
             echo '<thead>';
             echo '<tr>';
             echo '<th></th>'; // Checkbox column
-            echo '<th>Item</th>';
-            echo '<th>Category</th>';
-            echo '<th>Location</th>';
-            echo '<th>Rem.</th>';
+            echo '<th>Item ID</th>';
 
-            echo '<th>Condition</th>';
-            echo '<th>Purpose</th>';
+            echo '<th>Item</th>';
+            echo '<th>Location</th>';
+
+            echo '<th>Category</th>';
+
             echo '<th>Status</th>';
+            echo '<th>Ref RNSS</th>'; // New column for actions
+            echo '<th>Owner</th>'; // New column for actions
 
             echo '<th>Action</th>'; // New column for actions
             echo '</tr>';
@@ -264,14 +286,14 @@ $result = $conn->query($sql);
             while($row = $result->fetch_assoc()) {
                 echo '<tr>';
                 echo '<td><input type="checkbox" name="gadget_ids[]" value="' . $row["gadget_id"] . '"></td>'; // Checkbox
+                echo '<td>'. $row["unique_gadget_id"] . '</td>';
                 echo '<td>'. $row["gadget_name"] . '</td>';
-                echo '<td>' . $row["categories_name"] . '</td>';
                 echo '<td>' . $row["legends_name"] . '</td>';
-
-                echo '<td>' . $row["condition"] . '</td>';
-                echo '<td>' . $row["purpose"] . '</td>';
-                echo '<td>' . $row["remarks"] . '</td>';
+                echo '<td>' . $row["categories_name"] . '</td>';
                 echo '<td>' . $row["status"] . '</td>'; // Display status
+                echo '<td>' . $row["ref_rnss"] . '</td>';
+                echo '<td>' . $row["owner"] . '</td>';
+
                 // Action buttons
                 echo '<td>';
                 echo '<button type="button" class="view-button" onclick=\'openViewModal(' . json_encode($row) . ')\'>View</button>';
@@ -355,6 +377,14 @@ $result = $conn->query($sql);
                     <td><strong>Status:</strong></td>
                     <td id="gadgetStatus"></td>
                 </tr>
+                <tr>
+                    <td><strong>Ref RNSS:</strong></td>
+                    <td id="gadgetRefRNSS"></td>
+                </tr>
+                <tr>
+                    <td><strong>Owner:</strong></td>
+                    <td id="gadgetOwner"></td>
+                </tr>
             </table>
         </div>
     </div>
@@ -367,13 +397,13 @@ $result = $conn->query($sql);
         <div id="editContent" class="edit-content">
             <form action="crudgadgetMonitor.php" method="post">
                 <!-- Populate fields with existing data -->
-                <input type="hidden" id="editGadgetId" name="edit_gadget_id">
+                <input type="hidden" id="edit_gadget_id" name="edit_gadget_id">
                 
                 <label for="edit_gadget_name">Gadget Name:</label>
                 <input type="text" id="edit_gadget_name" name="edit_gadget_name"><br>
                 
                 <label for="edit_categories_id">Category:</label>
-                <select name="edit_categories_id" id="edit_categories_id">
+                <select name="edit_categories_id" id="edit_categories_id" disabled>
                 <option value="">Select Category</option>
 
                     <?php
@@ -385,7 +415,7 @@ $result = $conn->query($sql);
                 </select><br>
 
                 <label for="edit_legends_id">Location:</label>
-                <select name="edit_legends_id" id="edit_legends_id">
+                <select name="edit_legends_id" id="edit_legends_id" disabled>
                 <option value="">Select Location</option>
 
                     <?php
@@ -423,6 +453,13 @@ $result = $conn->query($sql);
                 <label for="edit_remarks">Remarks:</label><br>
                 <input type="text" id="edit_remarks" name="edit_remarks"></input><br>
 
+
+                <label for="edit_ref_rnss">Ref RNSS:</label>
+                <input type="text" id="edit_ref_rnss" name="edit_ref_rnss"><br>
+                
+                <label for="edit_owner">Owner:</label>
+                <input type="text" id="edit_owner" name="edit_owner"><br>
+
                 <label for="edit_status">Status:</label>
                 <select name="edit_status" id="edit_status">
                     <option value="Available">Available</option>
@@ -432,7 +469,7 @@ $result = $conn->query($sql);
                     <option value="Returned">Not Available</option>
 
                 </select><br>
-                
+
                 <input type="submit" name="edit_gadget" value="Save Changes">
             </form>
         </div>
@@ -502,6 +539,12 @@ $result = $conn->query($sql);
     <option value="Returned">Returned</option>
 </select>
 
+            <label for="ref_rnss">Ref RNSS:</label>
+            <input type="text" id="ref_rnss" name="ref_rnss" placeholder="Enter ref RNSS">
+            
+            <label for="owner">Owner:</label>
+            <input type="text" id="owner" name="owner" placeholder="Enter owner">
+            
             <input type="submit" class="assign-button" value="Add Gadget" name="add_gadget">
         </form>
     </div>
@@ -543,6 +586,9 @@ function openViewModal(row) {
     document.getElementById("gadgetRemarks").textContent = row.remarks;
     document.getElementById("gadgetLegends").textContent = row.legends_name;
     document.getElementById("gadgetStatus").textContent = row.status;
+    document.getElementById("gadgetRefRNSS").textContent = row.ref_rnss;
+    document.getElementById("gadgetOwner").textContent = row.owner;
+
 
     modal.style.display = "block";
 }
@@ -557,7 +603,7 @@ function openEditModal(row) {
     var modal = document.getElementById("editModal");
 
     // Populate fields with existing data
-    document.getElementById("editGadgetId").value = row.gadget_id;
+    document.getElementById("edit_gadget_id").value = row.gadget_id;
     document.getElementById("edit_gadget_name").value = row.gadget_name;
     document.getElementById("edit_categories_id").value = row.categories_id;
     document.getElementById("edit_legends_id").value = row.legends_id;
@@ -570,6 +616,10 @@ function openEditModal(row) {
     document.getElementById("edit_purpose").value = row.purpose;
     document.getElementById("edit_remarks").value = row.remarks;
     document.getElementById("edit_status").value = row.status;
+    document.getElementById("edit_ref_rnss").value = row.ref_rnss;
+    document.getElementById("edit_owner").value = row.owner;
+
+
 
     modal.style.display = "block";
 }

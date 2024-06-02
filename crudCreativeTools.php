@@ -4,6 +4,17 @@ session_start();
 // Include database connection
 include 'db-connect.php';
 
+// Function to generate unique creative ID
+function generateUniqueCreativeID($legend_abv, $category_abv, $year_added, $row_num) {
+    // Pad the row number to 4 digits with leading zeros
+    $padded_row_num = str_pad($row_num, 4, '0', STR_PAD_LEFT);
+    
+    // Construct the unique ID with the specified format
+    $unique_id = $legend_abv . '-' . $category_abv . '-' . $year_added . '-' . $padded_row_num;
+    
+    return $unique_id;
+}
+
 // Check if the form for adding a creative tool is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_creative_tool'])) {
     // Retrieve data from the form
@@ -16,11 +27,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_creative_tool'])) 
     $remarks = $_POST['remarks'];
     $categories_id = $_POST['categories_id'];
     $legends_id = $_POST['legends_id'];
+    $qty = $_POST['qty']; // Retrieve quantity
+
+    // Generate unique ID
+    $unique_creative_id = generateUniqueCreativeID($legends_id, $categories_id, date("Y"), 1);
 
     // Prepare SQL statement to insert creative tool into the database using prepared statement
-    $sql = "INSERT INTO creative_tools (creative_name, descriptions, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO creative_tools (creative_name, descriptions, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id, qty, unique_creative_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssss", $creative_name, $descriptions, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id);
+    $stmt->bind_param("sssssssssis", $creative_name, $descriptions, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $qty, $unique_creative_id);
 
     if ($stmt->execute()) {
         $successMessage = "New creative tool added successfully.";
@@ -46,13 +61,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
     $remarks = $_POST['edit_remarks'];
     $categories_id = $_POST['edit_categories_id'];
     $legends_id = $_POST['edit_legends_id'];
+    $qty = $_POST['edit_qty']; // Retrieve quantity
 
     // Prepare SQL statement for updating data in creative_tools table using prepared statement
     $sql = "UPDATE creative_tools 
-            SET creative_name=?, descriptions=?, emei=?, sn=?, custodian=?, rnss_acc=?, remarks=?, categories_id=?, legends_id=?
+            SET creative_name=?, descriptions=?, emei=?, sn=?, custodian=?, rnss_acc=?, remarks=?, categories_id=?, legends_id=?, qty=?
             WHERE creative_id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sssssssssi", $creative_name, $descriptions, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $creative_id);
+    $stmt->bind_param("ssssssssssii", $creative_name, $descriptions, $emei, $sn, $custodian, $rnss_acc, $remarks, $categories_id, $legends_id, $qty, $creative_id);
 
     if ($stmt->execute()) {
         $successMessage = "Creative tool updated successfully.";
@@ -98,6 +114,7 @@ function markCreativeToolsAsDeleted() {
 
 // Close database connection
 $conn->close();
+
 
 // Redirect back to the current page with success or error message
 if (!empty($successMessage)) {

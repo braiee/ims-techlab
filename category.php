@@ -44,8 +44,8 @@ $result = $conn->query($sql);
     <a href="category.php" class="nav-item active"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
 
     <span class="non-clickable-item">Office</span>
@@ -123,7 +123,7 @@ $result = $conn->query($sql);
                     echo '<td><button type="button" onclick="showEditCategoryModal(' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . ', \'' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '\', \'' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '\')" class="btn-edit">Edit</button></td>';
                     echo '</tr>';
                 }
-                
+
                 echo '</tbody>';
                 echo '</table>';
                 echo '</div>';

@@ -15,6 +15,18 @@ include 'db-connect.php';
 $successMessage = "";
 $errorMessage = "";
 
+// Function to generate unique creative ID
+function generateUniqueCreativeID($legend_abv, $category_abv, $year_added, $row_num) {
+    // Pad the row number to 4 digits with leading zeros
+    $padded_row_num = str_pad($row_num, 3, '0', STR_PAD_LEFT);
+    
+    // Construct the unique ID with the specified format
+    $unique_id = $legend_abv . '-' . $category_abv . '-' . $year_added . '-' . $padded_row_num;
+    
+    return $unique_id;
+}
+
+
 // Fetch categories for dropdown
 $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
 
@@ -34,17 +46,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $rnss_acc = $_POST['rnss_acc'];
         $remarks = $_POST['remarks'];
         $descriptions = $_POST['descriptions'];
+        $qty = $_POST['qty']; // Assuming qty is obtained from the form
+
+        // Retrieve abbreviation for categories and legends
+        $categories_abv = getCategoryAbv($categories_id, $conn);
+        $legends_abv = getLegendAbv($legends_id, $conn);
+
+        // Count existing items
+        $sql_count = "SELECT COUNT(*) AS count FROM creative_tools";
+        $result_count = $conn->query($sql_count);
+        $row_count = $result_count->fetch_assoc();
+        $index = $row_count['count'] + 1; // Increment by 1 for the next index
+
+        // Generate unique ID
+        $unique_creative_id = generateUniqueCreativeID($legends_abv, $categories_abv, date("Y"), $index);
 
         // Insert data into database
-        $sql = "INSERT INTO creative_tools (creative_name, categories_id, legends_id, emei, sn, custodian, rnss_acc, remarks, descriptions)
-                VALUES ('$creative_name', '$categories_id', '$legends_id', '$emei', '$sn', '$custodian', '$rnss_acc', '$remarks', '$descriptions')";
+        $sql = "INSERT INTO creative_tools (creative_name, categories_id, legends_id, emei, sn, custodian, rnss_acc, remarks, descriptions, qty, unique_creative_id)
+                VALUES ('$creative_name', '$categories_id', '$legends_id', '$emei', '$sn', '$custodian', '$rnss_acc', '$remarks', '$descriptions', '$qty', '$unique_creative_id')";
 
         if ($conn->query($sql) === TRUE) {
             $successMessage = "Creative tool added successfully.";
         } else {
             $errorMessage = "Error adding creative tool: " . $conn->error;
         }
-    } elseif ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_creative_tool'])) {
+    } elseif (isset($_POST['delete_creative_tool'])) {
         // Handle delete action
         if (isset($_POST['creative_ids'])) {
             $creative_ids = $_POST['creative_ids'];
@@ -67,10 +93,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $errorMessage = "No creative tools selected to delete.";
         }
     }
-    
 }
 
 
+// Function to get category abbreviation based on category ID
+function getCategoryAbv($category_id, $conn) {
+    // Implement your query to retrieve abbreviation based on category ID
+    $sql = "SELECT abv FROM categories WHERE categories_id = $category_id";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row["abv"];
+    } else {
+        return null;
+    }
+}
+
+// Function to get legend abbreviation based on legend ID
+function getLegendAbv($legend_id, $conn) {
+    // Implement your query to retrieve abbreviation based on legend ID
+    $sql = "SELECT abv FROM legends WHERE legends_id = $legend_id";
+    $result = $conn->query($sql);
+    if ($result && $result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row["abv"];
+    } else {
+        return null;
+    }
+}
 
 // Check if the form for editing a creative tool is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool'])) {
@@ -86,7 +136,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
     $edit_categories_id = $_POST['edit_categories_id'];
     $edit_legends_id = $_POST['edit_legends_id'];
     $status = $_POST['edit_status']; // Add status retrieval
-
+    $qty = $_POST['edit_qty']; // Add qty retrieval
 
     // SQL query to update data in creative_tools table
     $sql = "UPDATE creative_tools SET 
@@ -99,7 +149,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
                 remarks='$edit_remarks', 
                 categories_id='$edit_categories_id', 
                 legends_id='$edit_legends_id',
-                status='$status' 
+                status='$status',
+                qty='$qty' 
             WHERE creative_id='$edit_creative_id'";
 
     if ($conn->query($sql) === TRUE) {
@@ -111,9 +162,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool']))
     exit();
 }
 
-
 // SQL query to fetch creative tool data
-$sql = "SELECT ct.creative_id, ct.creative_name, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.status, ct.categories_id, ct.legends_id, c.categories_name, l.legends_name
+$sql = "SELECT ct.creative_id, ct.unique_creative_id, ct.creative_name, ct.qty, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, ct.status, ct.categories_id, ct.legends_id, c.categories_name, l.legends_name
         FROM creative_tools ct 
         LEFT JOIN categories c ON ct.categories_id = c.categories_id
         LEFT JOIN legends l ON ct.legends_id = l.legends_id
@@ -345,8 +395,8 @@ $result = $conn->query($sql);
     <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item "><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
 
     <span class="non-clickable-item">Office</span>
@@ -381,64 +431,64 @@ $result = $conn->query($sql);
 <!-- Main Content -->
 <div class="main-content">
     <div id="container" class="container">
-        <?php
-        if ($result->num_rows > 0) {
-            
-            echo '<form action="" method="post">';
-            echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-            
-            echo '<h2 style="color: #5D9C59;">Manage Creative Tools</h2>';
-         
-            
-            echo '<input type="submit" name="delete_creative_tool" value="Delete">';
-            echo '</div>';
-               
-            if (!empty($successMessage)) {
-                echo '<div class="message success">' . $successMessage . '</div>';
-            } elseif (!empty($errorMessage)) {
-                echo '<div class="message error">' . $errorMessage . '</div>';
-            }
-            echo '<div class="table-container">'; // Add a container div for the table
+    <?php
+if ($result->num_rows > 0) {
+    
+    echo '<form action="" method="post">';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+    
+    echo '<h2 style="color: #5D9C59;">Manage Creative Tools</h2>';
+ 
+    echo '<input type="submit" name="delete_creative_tool" value="Delete">';
+    echo '</div>';
+       
+    if (!empty($successMessage)) {
+        echo '<div class="message success">' . $successMessage . '</div>';
+    } elseif (!empty($errorMessage)) {
+        echo '<div class="message error">' . $errorMessage . '</div>';
+    }
+    echo '<div class="table-container">'; // Add a container div for the table
 
-            echo '<table>';
-            echo '<thead>';
-            echo '<tr>';
-            echo '<th></th>'; // Checkbox column
-            echo '<th>ID</th>';
-            echo '<th>Name</th>';
-            echo '<th>Category</th>';
-            echo '<th>Legend</th>';
-            echo '<th>Status</th>';
+    echo '<table>';
+    echo '<thead>';
+    echo '<tr>';
+    echo '<th></th>'; // Checkbox column
+    echo '<th>Item ID</th>';
+    echo '<th>Name</th>';
+    echo '<th>Category</th>';
+    echo '<th>Legend</th>';
+    echo '<th>Qty</th>'; // New column for qty
+    echo '<th>Status</th>';
+    echo '<th>Actions</th>';
+    echo '</tr>';
+    echo '</thead>';
+    echo '<tbody>';
 
-            echo '<th>Actions</th>';
-            echo '</tr>';
-            echo '</thead>';
-            echo '<tbody>';
+    while ($row = $result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td><input type="checkbox" name="creative_ids[]" value="' . $row["creative_id"] . '"></td>';
+        echo '<td>' . $row["unique_creative_id"] . '</td>';
+        echo '<td>' . $row["creative_name"] . '</td>';
+        echo '<td>' . $row["categories_name"] . '</td>';
+        echo '<td>' . $row["legends_name"] . '</td>';
+        echo '<td>' . $row["qty"] . '</td>'; // Display qty
+        echo '<td>' . $row["status"] . '</td>'; // Display status
 
-            while ($row = $result->fetch_assoc()) {
-                echo '<tr>';
-                echo '<td><input type="checkbox" name="creative_ids[]" value="' . $row["creative_id"] . '"></td>';
-                echo '<td>' . $row["creative_id"] . '</td>';
-                echo '<td>' . $row["creative_name"] . '</td>';
-                echo '<td>' . $row["categories_name"] . '</td>';
-                echo '<td>' . $row["legends_name"] . '</td>';
-                echo '<td>' . $row["status"] . '</td>'; // Display status
+        echo '<td><button type="button" class="view-button" onclick=\'openViewModal(' . json_encode($row) . ')\'>View</button>';
+        echo '<br>';
+        echo '<button type="button" class="view-button edit-button" onclick=\'openEditModal(' . json_encode($row) . ')\'>Edit</button></td>';
 
-                echo '<td><button type="button" class="view-button" onclick=\'openViewModal(' . json_encode($row) . ')\'>View</button>';
-                echo '<br>';
-                echo '<button type="button" class="view-button edit-button" onclick=\'openEditModal(' . json_encode($row) . ')\'>Edit</button></td>';
+        echo '</tr>';
+    }
 
-                echo '</tr>';
-            }
-
-            echo '</tbody>';
-            echo '</table>';
-            echo '</div>';
-            echo '</form>';
-        } else {
-            echo '<p>No creative tools found.</p>';
-        }
-        ?>
+    echo '</tbody>';
+    echo '</table>';
+    echo '</div>';
+    echo '</form>';
+} else {
+    echo '<p>No creative tools found.</p>';
+}
+?>
 
         <br>
 
@@ -460,6 +510,9 @@ $result = $conn->query($sql);
 
                     <label for="sn">Serial Number:</label>
                     <input type="text" name="sn" ><br>
+
+                    <label for="qty">Quantity:</label>
+                    <input type="number" name="qty"><br> <!-- Add quantity field -->
 
 
                     <label for="custodian">Custodian:</label>
@@ -515,14 +568,41 @@ $result = $conn->query($sql);
             <label for="edit_creative_name">Name:</label>
             <input type="text" id="edit_creative_name" name="edit_creative_name" ><br>
         
-            
+                                   <!-- Categories dropdown -->
+                                   <label for="edit_categories_id">Category:</label>
+            <select name="edit_categories_id" disabled>
+                <?php
+                // Fetch and display categories options
+                $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
+                while ($category = $categoriesResult->fetch_assoc()) {
+                    echo '<option value="' . $category['categories_id'] . '">' . $category['categories_name'] . '</option>';
+                }
+                ?>
+            </select><br>
+
+            <!-- Legends dropdown -->
+            <label for="edit_legends_id">Location:</label>
+            <select name="edit_legends_id" disabled>
+                <?php
+                // Fetch and display legends options
+                $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
+                while ($legend = $legendsResult->fetch_assoc()) {
+                    echo '<option value="' . $legend['legends_id'] . '">' . $legend['legends_name'] . '</option>';
+                }
+                ?>
+            </select>
+
+
             <label for="edit_emei">IMEI:</label>
             <input type="text" id="edit_emei" name="edit_emei" ><br>
             
             <label for="edit_sn">Serial Number:</label>
             <input type="text" id="edit_sn" name="edit_sn" ><br>
     
-            
+            <label for="edit_qty">Quantity:</label>
+            <input type="number" id="edit_qty" name="edit_qty" ><br> <!-- Add quantity field -->
+
+
             <label for="edit_custodian">Custodian:</label>
             <input type="text" id="edit_custodian" name="edit_custodian" ><br>
             
@@ -535,30 +615,6 @@ $result = $conn->query($sql);
             <label for="edit_descriptions">Descriptions:</label>
             <textarea id="edit_descriptions" name="edit_descriptions" ></textarea><br>
             
-                       <!-- Categories dropdown -->
-            <label for="edit_categories_id">Category:</label>
-            <select name="edit_categories_id">
-                <?php
-                // Fetch and display categories options
-                $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
-                while ($category = $categoriesResult->fetch_assoc()) {
-                    echo '<option value="' . $category['categories_id'] . '">' . $category['categories_name'] . '</option>';
-                }
-                ?>
-            </select><br>
-
-            <!-- Legends dropdown -->
-            <label for="edit_legends_id">Legend:</label>
-            <select name="edit_legends_id">
-                <?php
-                // Fetch and display legends options
-                $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
-                while ($legend = $legendsResult->fetch_assoc()) {
-                    echo '<option value="' . $legend['legends_id'] . '">' . $legend['legends_name'] . '</option>';
-                }
-                ?>
-            </select>
-
             <label for="edit_status">Status:</label>
                 <select name="edit_status" id="edit_status">
                     <option value="Available">Available</option>
@@ -582,7 +638,7 @@ $result = $conn->query($sql);
                 <div id="viewContent" class="view-content">
                     <table>
                         <tr>
-                            <td><strong>ID:</strong></td>
+                            <td><strong>Item D:</strong></td>
                             <td id="creativeId"></td>
                         </tr>
                         <tr>
@@ -605,6 +661,12 @@ $result = $conn->query($sql);
                             <td><strong>Serial Number:</strong></td>
                             <td id="creativeSN"></td>
                         </tr>
+
+                        <tr>
+                            <td><strong>Quantity:</strong></td>
+                            <td id="creativeQty"></td>
+                        </tr>
+
                         <tr>
                             <td><strong>Reference RNSS:</strong></td>
                             <td id="creativeRefRNSS"></td>
@@ -652,32 +714,32 @@ $result = $conn->query($sql);
         modal.style.display = "none";
     }
 
-    // Open modal for viewing creative tool
-    function openViewModal(row) {
-        var modal = document.getElementById("viewModal");
+// Open modal for viewing creative tool
+function openViewModal(row) {
+    var modal = document.getElementById("viewModal");
 
-        // Fill in data in modal
-        document.getElementById("creativeId").textContent = row.creative_id;
-        document.getElementById("creativeName").textContent = row.creative_name;
-        document.getElementById("creativeCategory").textContent = row.categories_name;
-        document.getElementById("creativeLegend").textContent = row.legends_name;
-        document.getElementById("creativeEMEI").textContent = row.emei;
-        document.getElementById("creativeSN").textContent = row.sn;
-        document.getElementById("creativeCustodian").textContent = row.custodian;
-        document.getElementById("creativeRNSSAcc").textContent = row.rnss_acc;
-        document.getElementById("creativeRemarks").textContent = row.remarks;
-        document.getElementById("creativeDescriptions").textContent = row.descriptions;
-        document.getElementById("gadgetStatus").textContent = row.status;
+    // Fill in data in modal
+    document.getElementById("creativeId").textContent = row.creative_id;
+    document.getElementById("creativeName").textContent = row.creative_name;
+    document.getElementById("creativeCategory").textContent = row.categories_name;
+    document.getElementById("creativeLegend").textContent = row.legends_name;
+    document.getElementById("creativeEMEI").textContent = row.emei;
+    document.getElementById("creativeSN").textContent = row.sn;
+    document.getElementById("creativeCustodian").textContent = row.custodian;
+    document.getElementById("creativeRNSSAcc").textContent = row.rnss_acc;
+    document.getElementById("creativeRemarks").textContent = row.remarks;
+    document.getElementById("creativeDescriptions").textContent = row.descriptions;
+    document.getElementById("gadgetStatus").textContent = row.status;
+    document.getElementById("creativeQty").textContent = row.qty; // Add this line to display the quantity
 
+    modal.style.display = "block";
+}
 
-        modal.style.display = "block";
-    }
-
-    // Close modal for viewing creative tool
-    function closeViewModal() {
-        var modal = document.getElementById("viewModal");
-        modal.style.display = "none";
-    }
+// Close modal for viewing creative tool
+function closeViewModal() {
+    var modal = document.getElementById("viewModal");
+    modal.style.display = "none";
+}
 
 // Open modal for editing creative tool
 function openEditModal(row) {
@@ -692,6 +754,8 @@ function openEditModal(row) {
     document.getElementById("edit_rnss_acc").value = row.rnss_acc;
     document.getElementById("edit_remarks").value = row.remarks;
     document.getElementById("edit_descriptions").value = row.descriptions;
+    document.getElementById("edit_qty").value = row.qty; // Add this line to populate the quantity
+
     document.getElementById("edit_status").value = row.status;
 
 
@@ -727,6 +791,19 @@ function openEditModal(row) {
             }
         }
     }
+// Remove messages after 2 seconds
+setTimeout(function() {
+    var successMessage = document.querySelector('.message.success');
+    var errorMessage = document.querySelector('.message.error');
+    if (successMessage) {
+        successMessage.style.display = 'none';
+    }
+    if (errorMessage) {
+        errorMessage.style.display = 'none';
+    }
+}, 2000);
+
+    
 </script>
 </body>
 </html>

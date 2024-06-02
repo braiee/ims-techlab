@@ -1,4 +1,7 @@
+
 <?php
+date_default_timezone_set('Asia/Manila');
+
 session_start();
 
 // Check if the user is logged in
@@ -42,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 }
 
 // SQL query to fetch office supply data excluding those with status "Deleted"
-$sql = "SELECT office_id, office_name, emei, sn, custodian, rnss_acc, remarks, status, categories_id, legends_id 
+$sql = "SELECT unique_legends_id, office_id, office_name, custodian, remarks, status, categories_id, legends_id 
         FROM office_supplies
         WHERE status != 'Deleted'";
 $result = $conn->query($sql);
@@ -148,8 +151,8 @@ table {
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item active"><span class="icon-placeholder"></span>Supplies</a>
@@ -203,15 +206,13 @@ table {
             echo '<table>';
             echo '<thead>';
             echo '<tr>';
-            echo '<th></th>'; // Checkbox column
+            echo '<th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>';
+            echo '<th>Item ID</th>';
             echo '<th>Item</th>';
-            echo '<th>IMEI</th>';
-            echo '<th>SN</th>';
-            echo '<th>Cust.</th>';
-            echo '<th>RNSS</th>';
-            echo '<th>Rem.</th>';
             echo '<th>Loc.</th>';
             echo '<th>Cat.</th>';
+            echo '<th>Cust.</th>';
+            echo '<th>Rem.</th>';
             echo '<th>Status</th>';
             echo '<th>Action</th>'; // New column for actions
             echo '</tr>';
@@ -222,18 +223,16 @@ table {
             while ($row = $result->fetch_assoc()) {
                 echo '<tr>';
                 echo '<td><input type="checkbox" name="office_ids[]" value="' . $row["office_id"] . '"></td>'; // Checkbox
+                echo '<td>' . $row["unique_legends_id"] . '</td>'; // Display unique_id
                 echo '<td>' . $row["office_name"] . '</td>';
-                echo '<td>' . $row["emei"] . '</td>';
-                echo '<td>' . $row["sn"] . '</td>';
-                echo '<td>' . $row["custodian"] . '</td>';
-                echo '<td>' . $row["rnss_acc"] . '</td>';
-                echo '<td>' . $row["remarks"] . '</td>';
                 echo '<td>' . getLegendName($row["legends_id"], $conn) . '</td>'; // Display legend name
                 echo '<td>' . getCategoryName($row["categories_id"], $conn) . '</td>'; // Display category name
+                echo '<td>' . $row["custodian"] . '</td>';
+                echo '<td>' . $row["remarks"] . '</td>';
                 echo '<td>' . $row["status"] . '</td>'; // Display status
-                echo '<td><button class="edit-button" type="button" onclick="editOfficeSupply(' . $row["office_id"] . ', \'' . $row["office_name"] . '\', \'' . $row["emei"] . '\', \'' . $row["sn"] . '\', \'' . $row["custodian"] . '\', \'' . $row["rnss_acc"] . '\', \'' . $row["remarks"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\')">Edit</button></td>';
+                echo '<td><button class="edit-button" type="button" onclick="editOfficeSupply(' . $row["office_id"] . ', \'' . addslashes($row["office_name"]) . '\', \'' . addslashes($row["custodian"]) . '\', \'' . addslashes($row["remarks"]) . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\', \'' . $row["unique_legends_id"] . '\')">Edit</button></td>';
                 echo '</tr>';
-            }
+                            }
 
             echo '</tbody>';
             echo '</table>';
@@ -258,14 +257,8 @@ table {
         <form action="crudOfficeSupplies.php" method="post">
             <label for="office_name">Office Supply Name:</label>
             <input type="text" id="office_name" name="office_name" placeholder="Enter office supply name"><br>
-            <label for="emei">IMEI  :</label>
-            <input type="text" id="emei" name="emei" placeholder="Enter IMEI" >
-            <br><label for="sn">Serial:</label>
-            <input type="text" id="sn" name="sn" placeholder="Enter serial number" ><br>
             <label for="custodian">Custodian:</label>
             <input type="text" id="custodian" name="custodian" placeholder="Enter custodian" >
-            <label for="rnss_acc">RNSS Account:</label>
-            <input type="text" id="rnss_acc" name="rnss_acc" placeholder="Enter RNSS account" >
             <label for="remarks">Remarks:</label><br>
             <select id="remarks" name="remarks" >
                 <option disabled selected>Select condition</option>
@@ -322,24 +315,18 @@ table {
         <h3>Edit Office Supply</h3>
         <form action="crudOfficeSupplies.php" method="post">
             <input type="hidden" id="edit_office_id" name="edit_office_id">
-            <label for="edit_office_name">Office Supply Name:</label>
-            <input type="text" id="edit_office_name" name="edit_office_name" placeholder="Enter office supply name" ><br>
-            <label for="edit_emei">IMEI  :</label>
-            <input type="text" id="edit_emei" name="edit_emei" placeholder="Enter IMEI" >
-            <label for="edit_sn">Serial:</label>
-            <input type="text" id="edit_sn" name="edit_sn" placeholder="Enter serial number" ><br>
-            <label for="edit_custodian">Custodian:</label>
-            <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" >
-            <label for="edit_rnss_acc">RNSS Account:</label>
-            <input type="text" id="edit_rnss_acc" name="edit_rnss_acc" placeholder="Enter RNSS account" >
-            <div> </div>
-            <label for="edit_remarks">Remarks:</label><br>
-<input type="text" id="edit_remarks" name="edit_remarks" placeholder="Enter remarks"><br>
 
-<input type="hidden" id="edit_office_id" name="edit_office_id">
-            <!-- Other input fields for editing office supply details -->
-            <label for="edit_categories_id">Category:</label>
-            <select id="edit_categories_id" name="edit_categories_id">
+            <label for="edit_office_name">Office Supply Name:</label>
+            <input type="text" id="edit_office_name" name="edit_office_name" placeholder="Enter office supply name" required><br>
+
+            <label for="edit_custodian">Custodian:</label>
+            <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" required><br>
+
+            <label for="edit_remarks">Remarks:</label><br>
+            <input type="text" id="edit_remarks" name="edit_remarks" placeholder="Enter remarks"><br>
+
+            <label for="edit_categories_id" >Category:</label>
+            <select id="edit_categories_id" name="edit_categories_id" disabled>
                 <?php
                 // Fetch and populate categories from the database
                 $categoriesResult->data_seek(0); // Reset pointer to the beginning
@@ -347,9 +334,10 @@ table {
                     echo '<option value="' . $category['categories_id'] . '">' . $category['categories_name'] . '</option>';
                 }
                 ?>
-            </select>
-            <label for="edit_legends_id">Legend:</label>
-            <select id="edit_legends_id" name="edit_legends_id">
+            </select><br>
+
+            <label for="edit_legends_id">Location:</label>
+            <select id="edit_legends_id" name="edit_legends_id" disabled>
                 <?php
                 // Fetch and populate legends from the database
                 $legendsResult->data_seek(0); // Reset pointer to the beginning
@@ -357,7 +345,8 @@ table {
                     echo '<option value="' . $legend['legends_id'] . '">' . $legend['legends_name'] . '</option>';
                 }
                 ?>
-            </select>
+            </select><br>
+
             <label for="edit_status">Status:</label>
             <select id="edit_status" name="edit_status">
                 <?php
@@ -366,17 +355,17 @@ table {
                     echo '<option value="' . $status . '">' . $status . '</option>';
                 }
                 ?>
-            </select>
+            </select><br>
 
-<input type="submit" class="edit-button" value="Save Changes" name="edit_office_supply">
-
-
+            <input type="submit" class="edit-button" value="Save Changes" name="edit_office_supply">
         </form>
     </div>
 </div>
 
 <!-- JavaScript for modal functionality -->
 <script>
+
+
     // Get the modals
     var modal = document.getElementById('assignModal');
     var editModal = document.getElementById('editModal');
@@ -396,26 +385,24 @@ table {
 
 
 // Show edit modal
-function editOfficeSupply(id, name, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id, status) {
-    document.getElementById('edit_office_id').value = id;
-    document.getElementById('edit_office_name').value = name;
-    document.getElementById('edit_emei').value = emei;
-    document.getElementById('edit_sn').value = sn;
+function editOfficeSupply(office_id, office_name, custodian, remarks, categories_id, legends_id, status) {
+    document.getElementById('edit_office_id').value = office_id;
+    document.getElementById('edit_office_name').value = office_name;
     document.getElementById('edit_custodian').value = custodian;
-    document.getElementById('edit_rnss_acc').value = rnss_acc;
     document.getElementById('edit_remarks').value = remarks;
     document.getElementById('edit_categories_id').value = categories_id;
     document.getElementById('edit_legends_id').value = legends_id;
-    document.getElementById('edit_status').value = status; // Assuming you also have a status field in the form
-    editModal.style.display = "block";
+    document.getElementById('edit_status').value = status;
+
+    document.getElementById('editModal').style.display = "block";
 }
 
-// When the user clicks on <span> (x), close the edit modal
 function closeEditModal() {
-    editModal.style.display = "none";
+    document.getElementById('editModal').style.display = "none";
 }
 
-   // Automatically hide success and error messages after 2 seconds
+
+// Automatically hide success and error messages after 2 seconds
 setTimeout(function(){
     var successMessage = document.querySelector('.success-message');
     var errorMessage = document.querySelector('.error-message');
@@ -438,6 +425,12 @@ window.onclick = function(event) {
             }
         }
     }
+
+    function toggleSelectAll(selectAllCheckbox) {
+        const checkboxes = document.querySelectorAll('input[name="office_ids[]"]');
+        checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
+    }
+
 </script>
 
 </body>

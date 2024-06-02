@@ -1,3 +1,18 @@
+<?php
+
+date_default_timezone_set('Asia/Manila');
+
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    // If not logged in, redirect to the login page
+    header("Location: login.php");
+    exit();
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,8 +38,8 @@
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-        <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
         <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
 
     <span class="non-clickable-item">Office</span>
@@ -46,7 +61,6 @@
             <ul class="nav-links">
                 <!-- Display greeting message -->
                 <?php
-                session_start();
                 if (isset($_SESSION["user_id"])) {
                     echo '<li>Hello, ' . htmlspecialchars($_SESSION["username"]) . '!</li>';
                     echo '<li><a href="logout.php">Logout</a></li>';
