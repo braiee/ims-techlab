@@ -22,6 +22,9 @@ label {
     border-radius: 5px;
     box-shadow: 0 0 46.7px rgba(0, 0, 0, 0.1);
     background-color: #C7E8CA;
+    overflow-x: auto; /* Enable horizontal scrolling */
+
+    
 }
 
 .table-header {

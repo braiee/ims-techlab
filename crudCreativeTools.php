@@ -4,96 +4,68 @@ session_start();
 // Include database connection
 include 'db-connect.php';
 
-// Check if the user is logged in
-if (!isset($_SESSION['user_id'])) {
-    // If not logged in, redirect to the login page
-    header("Location: login.php");
+// Check if the form for adding a creative tool is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_creative_tool'])) {
+    // Retrieve data from the form
+    $creative_name = $_POST['creative_name'];
+    $descriptions = $_POST['descriptions'];
+    $emei = $_POST['emei'];
+    $sn = $_POST['sn'];
+    $custodian = $_POST['custodian'];
+    $rnss_acc = $_POST['rnss_acc'];
+    $remarks = $_POST['remarks'];
+    $categories_id = $_POST['categories_id'];
+    $legends_id = $_POST['legends_id'];
+
+    // SQL query to insert data into creative_tools table
+    $sql = "INSERT INTO creative_tools (creative_name, descriptions, emei, sn, custodian, rnss_acc, remarks, categories_id, legends_id) VALUES ('$creative_name', '$descriptions', '$emei', '$sn', '$custodian', '$rnss_acc', '$remarks', '$categories_id', '$legends_id')";
+
+    if ($conn->query($sql) === TRUE) {
+        $_SESSION['message'] = "New creative tool added successfully.";
+    } else {
+        $_SESSION['message'] = "Error adding creative tool: " . $conn->error;
+    }
+    header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
-// Check if form is submitted for adding a creative tool
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_creative_tool'])) {
-    // Validate and sanitize input data
-    $creative_name = htmlspecialchars($_POST['creative_name']);
-    $descriptions = htmlspecialchars($_POST['descriptions']);
-    $qty = htmlspecialchars($_POST['qty']);
-    $emei = htmlspecialchars($_POST['emei']);
-    $sn = htmlspecialchars($_POST['sn']);
-    $ref_rnss = htmlspecialchars($_POST['ref_rnss']);
-    $owner = htmlspecialchars($_POST['owner']);
-    $custodian = htmlspecialchars($_POST['custodian']);
-    $rnss_acc = htmlspecialchars($_POST['rnss_acc']);
-    $remarks = htmlspecialchars($_POST['remarks']);
+// Edit gadget details
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
+    // Retrieve form data
+    $gadget_id = $_POST['edit_gadget_id'];
+    $gadget_name = $_POST['edit_gadget_name'];
+    $categories_id = $_POST['edit_categories_id'];
+    $legends_id = $_POST['edit_legends_id']; // Add legends_id retrieval
+    $color = $_POST['edit_color'];
+    $emei = $_POST['edit_emei'];
+    $sn = $_POST['edit_sn'];
+    $custodian = $_POST['edit_custodian'];
+    $rnss_acc = $_POST['edit_rnss_acc'];
+    $condition = $_POST['edit_condition'];
+    $purpose = $_POST['edit_purpose'];
+    $remarks = $_POST['edit_remarks'];
+    $status = $_POST['edit_status']; // Add status retrieval
 
-    // Prepare and execute SQL statement to insert the new creative tool
-    $sql = "INSERT INTO creative_tools (creative_name, descriptions, qty, emei, sn, ref_rnss, owner, custodian, rnss_acc, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $creative_name, $descriptions, $qty, $emei, $sn, $ref_rnss, $owner, $custodian, $rnss_acc, $remarks);
-    if ($stmt->execute()) {
-        $successMessage = "Creative tool added successfully.";
+    // SQL query to update gadget details
+    $sql = "UPDATE gadget_monitor SET gadget_name='$gadget_name', categories_id='$categories_id', 
+    legends_id='$legends_id', color='$color', emei='$emei', sn='$sn', custodian='$custodian', 
+    rnss_acc='$rnss_acc', `condition`='$condition', purpose='$purpose', remarks='$remarks', 
+    status='$status' WHERE gadget_id=$gadget_id";
+
+    if ($conn->query($sql) === TRUE) {
+        $successMessage = "Gadget details updated successfully.";
     } else {
-        $errorMessage = "Error adding creative tool: " . $conn->error;
-    }
-    $stmt->close();
-}
-
-// Check if form is submitted for editing a creative tool
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_creative_tool'])) {
-    // Validate and sanitize input data
-    $creative_id = $_POST['edit_creative_id'];
-    $creative_name = htmlspecialchars($_POST['edit_creative_name']);
-    $descriptions = htmlspecialchars($_POST['edit_descriptions']);
-    $qty = htmlspecialchars($_POST['edit_qty']);
-    $emei = htmlspecialchars($_POST['edit_emei']);
-    $sn = htmlspecialchars($_POST['edit_sn']);
-    $ref_rnss = htmlspecialchars($_POST['edit_ref_rnss']);
-    $owner = htmlspecialchars($_POST['edit_owner']);
-    $custodian = htmlspecialchars($_POST['edit_custodian']);
-    $rnss_acc = htmlspecialchars($_POST['edit_rnss_acc']);
-    $remarks = htmlspecialchars($_POST['edit_remarks']);
-
-    // Prepare and execute SQL statement to update the creative tool
-    $sql = "UPDATE creative_tools SET creative_name=?, descriptions=?, qty=?, emei=?, sn=?, ref_rnss=?, owner=?, custodian=?, rnss_acc=?, remarks=? WHERE creative_id=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssi", $creative_name, $descriptions, $qty, $emei, $sn, $ref_rnss, $owner, $custodian, $rnss_acc, $remarks, $creative_id);
-    if ($stmt->execute()) {
-        // If update is successful, send success response to JavaScript
-        echo json_encode(array("success" => true, "message" => "Creative tool updated successfully."));
-    } else {
-        // If update fails, send error response to JavaScript
-        echo json_encode(array("success" => false, "message" => "Error updating creative tool: " . $conn->error));
-    }
-    $stmt->close();
-    exit(); // Terminate script after processing form submission
-}
-
-
-// Check if form is submitted for deleting creative tools
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
-    // Handle delete action
-    // Get creative tool IDs and delete them from the database
-    if (isset($_POST['creative_ids'])) {
-        $creative_ids = $_POST['creative_ids'];
-        $creative_ids_str = "'" . implode("','", $creative_ids) . "'";
-        $sql = "DELETE FROM creative_tools WHERE creative_id IN ($creative_ids_str)";
-        
-        if ($conn->query($sql) === TRUE) {
-            $successMessage = "Creative tools deleted successfully.";
-        } else {
-            $errorMessage = "Error deleting creative tools: " . $conn->error;
-        }
-    } else {
-        $errorMessage = "No creative tools selected to delete.";
+        $errorMessage = "Error updating gadget details: " . $conn->error;
     }
 }
 
-// Redirect back to creativeTools.php with success or error message
-if (!empty($successMessage)) {
-    header("Location: creativeTools.php?success=" . urlencode($successMessage));
-} elseif (!empty($errorMessage)) {
-    header("Location: creativeTools.php?error=" . urlencode($errorMessage));
-} else {
-    header("Location: creativeTools.php");
+
+// Close database connection
+$conn->close();
+
+// Display the message if it exists
+if (isset($_SESSION['message'])) {
+    echo '<p>' . $_SESSION['message'] . '</p>';
+    unset($_SESSION['message']); // Clear the message after displaying it
 }
-exit();
 ?>

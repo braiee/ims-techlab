@@ -19,8 +19,8 @@ $errorMessage = isset($_SESSION['error_message']) ? $_SESSION['error_message'] :
 unset($_SESSION['success_message']);
 unset($_SESSION['error_message']);
 
-// SQL query to fetch categories data
-$sql = "SELECT categories_id, categories_name FROM categories";
+// SQL query to fetch legends data
+$sql = "SELECT legends_id, legends_name FROM legends";
 $result = $conn->query($sql);
 
 ?>
@@ -32,7 +32,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/Dashboard.css">
     <link rel="stylesheet" href="css/Ticket_style.css">
-    <title>Manage Categories</title>
+    <title>Manage Location</title>
 </head>
 
 <body>
@@ -41,8 +41,8 @@ $result = $conn->query($sql);
 <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="ticketing.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item active"><span class="icon-placeholder"></span>Categories</a>
-    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
+    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item active"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
@@ -68,36 +68,41 @@ $result = $conn->query($sql);
     </div>
 </div>
 
+<!-- Success and Error Modal -->
+<div id="messageModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMessageModal()">&times;</span>
+        <div id="messageContent"></div>
+    </div>
+</div>
+
 <div class="main-content">
     <div class="container">
-
-      
-
-        <form action="crudCategories.php" method="post">
+    
+        <form action="crudLegends.php" method="post">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2 style="color: #5D9C59;">Manage Categories</h2>
+                <h2 style="color: #5D9C59;">Manage Location</h2>
                 <div>
-                    <input type="submit" name="delete_category" value="Delete" class="btn-delete">
+                    <input type="submit" name="delete_legend" value="Delete" class="btn-delete">
                 </div>
             </div>
-  <!-- Success and Error Messages -->
-  <?php if (!empty($successMessage)) : ?>
-            <div class="success-message">
-                <?php echo $successMessage; ?>
-            </div>
-        <?php endif; ?>
-        <?php if (!empty($errorMessage)) : ?>
-            <div class="error-message">
-                <?php echo $errorMessage; ?>
-            </div>
-        <?php endif; ?>
+            <div class="message-container">
+            <?php
+            if (!empty($successMessage)) {
+                echo '<div class="success-message">' . $successMessage . '</div>';
+            } elseif (!empty($errorMessage)) {
+                echo '<div class="error-message">' . $errorMessage . '</div>';
+            }
+            ?>
+        </div>
+
             <?php
             if ($result->num_rows > 0) {
                 echo '<table>';
                 echo '<thead>';
                 echo '<tr>';
                 echo '<th></th>'; // Checkbox column
-                echo '<th>Category</th>';
+                echo '<th>Location</th>';
                 echo '<th>Action</th>'; // Edit button column
                 echo '</tr>';
                 echo '</thead>';
@@ -106,83 +111,59 @@ $result = $conn->query($sql);
                 // Output data of each row
                 while($row = $result->fetch_assoc()) {
                     echo '<tr>';
-                    echo '<td><input type="checkbox" name="select_category[]" value="' . $row["categories_id"] . '"></td>'; // Checkbox
-                    echo '<td>' . $row["categories_name"] . '</td>';
-                    echo '<td><button type="button" onclick="showEditCategoryModal(' . $row["categories_id"] . ', \'' . $row["categories_name"] . '\')" class="btn-edit">Edit</button></td>'; // Edit button
+                    echo '<td><input type="checkbox" name="delete_legend_id[]" value="' . $row["legends_id"] . '"></td>'; // Checkbox
+                    echo '<td>' . $row["legends_name"] . '</td>';
+                    echo '<td><button type="button" onclick="showEditLegendModal(' . $row["legends_id"] . ', \'' . $row["legends_name"] . '\')" class="btn-edit">Edit</button></td>'; // Edit button
                     echo '</tr>';
                 }
                 echo '</tbody>';
                 echo '</table>';
-           
             } else {
-                echo "No categories found.";
+                echo "No legends found.";
             }
             $conn->close();
             ?>
         </form>
 
         <!-- Add button at the bottom left -->
-        <button type="button" onclick="showAddCategoryModal()" class="btn-add" style="margin-top: 20px;">Add</button>
+        <button type="button" onclick="showAddLegendModal()" class="btn-add" style="margin-top: 20px;">Add</button>
     </div>
 </div>
 
-<!-- Add Category Modal -->
-<div id="addCategoryModal" class="modal">
+<!-- Add Legend Modal -->
+<div id="addLegendModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeAddCategoryModal()">&times;</span>
-        <form action="crudCategories.php" method="post">
-            <h2>Add Category</h2>
-            <label for="category_name">Category Name:</label>
-            <input type="text" id="category_name" name="category_name" required>
-            <input type="submit" name="add_category" value="Add Category">
+        <span class="close" onclick="closeAddLegendModal()">&times;</span>
+        <form action="crudLegends.php" method="post">
+            <h2>Add Location</h2>
+            <label for="legend_name">Location Name:</label>
+            <input type="text" id="legend_name" name="legend_name" required>
+            <input type="submit" name="add_legend" value="Add Legend">
         </form>
     </div>
 </div>
 
-<!-- Edit Category Modal -->
-<div id="editCategoryModal" class="modal">
+<!-- Edit Legend Modal -->
+<div id="editLegendModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeEditCategoryModal()">&times;</span>
-        <form action="crudCategories.php" method="post">
-            <h2>Edit Category</h2>
-            <input type="hidden" id="edit_category_id" name="edit_category_id">
-            <label for="edit_category_name">Category Name:</label>
-            <input type="text" id="edit_category_name" name="edit_category_name" required>
-            <input type="submit" name="edit_category" value="Edit Category">
+        <span class="close" onclick="closeEditLegendModal()">&times;</span>
+        <form action="crudLegends.php" method="post">
+            <h2>Edit Location</h2>
+            <input type="hidden" id="edit_legend_id" name="edit_legend_id">
+            <label for="edit_legend_name">Location Name:</label>
+            <input type="text" id="edit_legend_name" name="edit_legend_name" required>
+            <input type="submit" name="edit_legend" value="Edit Legend">
         </form>
     </div>
 </div>
 
 <!-- JavaScript for modal functionality -->
 <script>
-    var addCategoryModal = document.getElementById('addCategoryModal');
-    var editCategoryModal = document.getElementById('editCategoryModal');
+    var addLegendModal = document.getElementById('addLegendModal');
+    var editLegendModal = document.getElementById('editLegendModal');
 
-
-    // Show Add Category Modal
-    function showAddCategoryModal() {
-        addCategoryModal.style.display = "block";
-    }
-
-    // Close Add Category Modal
-    function closeAddCategoryModal() {
-        addCategoryModal.style.display = "none";
-    }
-
-    // Show Edit Category Modal
-    function showEditCategoryModal(category_id, category_name) {
-        document.getElementById('edit_category_id').value = category_id;
-        document.getElementById('edit_category_name').value = category_name;
-        editCategoryModal.style.display = "block";
-    }
-
-    // Close Edit Category Modal
-    function closeEditCategoryModal() {
-        editCategoryModal.style.display = "none";
-    }
-
-    // Function to hide messages after 2 seconds
-    function hideMessages() {
+// Function to hide messages after 2 seconds
+function hideMessages() {
         var messages = document.querySelectorAll('.success-message, .error-message');
         messages.forEach(function(message) {
             setTimeout(function() {
@@ -194,7 +175,40 @@ $result = $conn->query($sql);
     // Call the function when the page loads
     window.onload = function() {
         hideMessages();
-    };
+    }; 
+
+    // Show Add Legend Modal
+    function showAddLegendModal() {
+        addLegendModal.style.display = "block";
+    }
+
+    // Close Add Legend Modal
+    function closeAddLegendModal() {
+        addLegendModal.style.display = "none";
+    }
+
+    // Show Edit Legend Modal
+    function showEditLegendModal(legend_id, legend_name) {
+        document.getElementById('edit_legend_id').value = legend_id;
+        document.getElementById('edit_legend_name').value = legend_name;
+        editLegendModal.style.display = "block";
+    }
+
+    // Close Edit Legend Modal
+    function closeEditLegendModal() {
+        editLegendModal.style.display = "none";
+    }
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        var modals = document.getElementsByClassName("modal");
+        for (var i = 0; i < modals.length; i++) {
+            var modal = modals[i];
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
 </script>
 
 <!-- CSS for buttons (for illustration purposes, you can adjust as needed) -->
@@ -221,19 +235,23 @@ $result = $conn->query($sql);
             .btn-add:hover{
                 background-color: #ddf7e3ac;
             }
-    .success-message, .error-message {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-}
+
 
 .success-message {
-    color: #5D9C59; /* Green text color */
+    color: #5D9C59;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
 
 .error-message {
-    color: #D8000C; /* Red text color */
+    color: #D8000C;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
+
+    
 </style>
 
 </body>

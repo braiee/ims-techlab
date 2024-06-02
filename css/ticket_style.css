@@ -66,6 +66,7 @@ td:nth-child(1) {
 
 th {
     background-color: #f2f2f2;
+    color: #5D9C59;
     
 }
 
@@ -86,6 +87,11 @@ tr:nth-child(even) {
 
 .assign-button:hover {
     background-color: #ddf7e3ac;
+}
+
+.delete-bth:hover{
+    background-color: #f7ddddac;
+
 }
 
 .home-button {
@@ -118,13 +124,13 @@ tr:nth-child(even) {
 /* Modal Content/Box */
 .modal-content {
     background-color: #DDF7E3;
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: 10% auto; /* 15% from the top and centered */
     padding: 20px;
     border: 1px solid #888;
     width: 80%; /* Could be more or less, depending on screen size */
     border-radius: 5px;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    animation: modal-drop 0.5s ease-out;
+    animation: fadeIn 0.5s;
 }
 
 /* Close Button */
@@ -168,12 +174,17 @@ input[type="submit"]:hover {
 
 
 
-
-@keyframes modal-drop {
-    from {
-        margin-top: -300px;
-    }
-    to {
-        margin-top: 230px;
-    }
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+.fade-out {
+    animation: fadeOut 0.5s;
+}
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }

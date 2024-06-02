@@ -39,8 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
 // SQL query to fetch ticket data
 $sql = "SELECT ticket_id, task_name, description, status, assigned_to, date_created FROM ticketing_table";
 $result = $conn->query($sql);
-
-
 ?>
 
 <!DOCTYPE html>
@@ -49,7 +47,7 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/Dashboard.css">
-    <link rel="stylesheet" href="css/Ticket_STylE.css">
+    <link rel="stylesheet" href="css/TickeT_STylE.css">
 
     <title>Borrow Item</title>
 </head>
@@ -57,19 +55,19 @@ $result = $conn->query($sql);
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
+<a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="ticketing.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Legends</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Office</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
+    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
     <span class="non-clickable-item">Summary</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
 </div>
 
 <!-- Header box container -->
@@ -97,11 +95,12 @@ $result = $conn->query($sql);
     <?php
 if ($result->num_rows > 0) {
     echo '<form action="" method="post">';
-    echo '<div class="table-container">'; // Add a container div for the table
-    echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+    echo '<div style="display: flex; justify-content: space-between; align-items: center;">';
     echo '<h2 style="color: #5D9C59;">Borrowed Item Tickets</h2>';
-    echo '<input type="submit" name="delete" value="Delete" style="margin-right: 10px;">';
+    echo '<input type="submit" class="delete-btn" name="delete" value="Delete" margin-right: 10px;">';
     echo '</div>';
+    echo '<div class="table-container">'; // Add a container div for the table
+
     echo '<table>';
     echo '<thead>';
     echo '<tr>';
@@ -137,7 +136,7 @@ if ($result->num_rows > 0) {
     
     // Check if delete action is triggered and no checkboxes are selected
     if (isset($_POST['delete']) && empty($_POST['ticket_ids'])) {
-        echo '<p style="color: red;">Please select a ticket to delete.</p>';
+        echo '<p id="error-message" style="color: red;">Please select a ticket to delete.</p>';
     }
 } else {
     echo "No tickets found.";
@@ -153,11 +152,11 @@ if ($result->num_rows > 0) {
         <!-- Modal content -->
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h3>Borrow an Item</h3>
+            <h3 style="color: #5D9C59;">Borrow an Item</h3>
             <form action="process_assign_ticket.php" method="post">
                 <input type="hidden" id="date_created" name="date_created" value="<?php echo date("Y-m-d H:i:s"); ?>">
 
-                <label for="task_name">Item Borrowed:</label>
+                <label style="color: #5D9C59;" for="task_name">Item Borrowed:</label>
                 <select id="task_name" name="task_name">
                     <option value="VR Goggles">VR Goggles</option>
                     <option value="Laptop">Laptop</option>
@@ -168,14 +167,14 @@ if ($result->num_rows > 0) {
                 <input type="text"  name="description" placeholder="Enter description" required>
                 <br>
 
-                <label for="status">Status:</label>
+                <label style="color: #5D9C59;" for="status">Status:</label>
                 <select id="status" name="status" placeholder="Enter description">
                     <option value="Borrowed">Borrowed</option>
                     <option value="For Request">For request</option>
                     <option value="Returned">Returned</option>
                 </select>
 
-                <label for="assigned_to">Borrowed By:</label>
+                <label style="color: #5D9C59;" for="assigned_to">Borrowed By:</label>
                 <select id="assigned_to" name="assigned_to">
                     <option value="Jermaine">Jermaine</option>
                     <option value="Ambraie">Ambraie</option>
@@ -202,21 +201,33 @@ if ($result->num_rows > 0) {
         }
 
         function toggleAllCheckboxes(masterCheckbox) {
-    var checkboxes = document.getElementsByName('ticket_ids[]');
-    
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = masterCheckbox.checked;
+            var checkboxes = document.getElementsByName('ticket_ids[]');
+            
+            for (var i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = masterCheckbox.checked;
+            }
+        }
+
+        // Hide the error message after 3 seconds
+        window.onload = function() {
+            var errorMessage = document.getElementById('error-message');
+            if (errorMessage) {
+                setTimeout(function() {
+                    errorMessage.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        var modals = document.getElementsByClassName("modal");
+        for (var i = 0; i < modals.length; i++) {
+            var modal = modals[i];
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     }
-}
     </script>
-
-
-
-
 </body>
 </html>
-
-
-
-
-

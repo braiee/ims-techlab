@@ -19,9 +19,119 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/DasHbOARd.css">
     <title>Dashboard</title>
+    
     <style>
-        
+        /* Style for making the table responsive */
+        .modal-content {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            th, td {
+                display: block;
+                width: 100%;
+            }
+            tr {
+                display: block;
+                margin-bottom: 1rem;
+            }
+            tr:nth-child(odd) {
+                background-color: #f9f9f9;
+            }
+            th {
+                background-color: transparent;
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            td {
+                border: none;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+            }
+            td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 10px;
+                width: 45%;
+                padding-right: 10px;
+                text-align: left;
+                white-space: nowrap;
+            }
+        }
+
+        .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    .pagination a {
+        color: #555;
+        float: left;
+        padding: 8px 16px;
+        text-decoration: none;
+        transition: background-color .3s;
+        border: 1px solid #ddd;
+        margin: 0 4px;
+    }
+
+    .pagination a.active {
+        background-color: #4CAF50;
+        color: white;
+        border: 1px solid #4CAF50;
+    }
+
+    .pagination a:hover:not(.active) {background-color: #ddd;}
+
+       /* Pagination styles */
+       #pagination {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .pagination-link {
+        display: inline-block;
+        padding: 8px 16px;
+        text-decoration: none;
+        color: #5D9C59;
+        border: 1px solid #5D9C59;
+        border-radius: 4px;
+        margin-right: 5px;
+    }
+
+    .pagination-link.active {
+        background-color: #5D9C59;
+        color: white;
+    }
+
+    .pagination-link:hover {
+        background-color: #5D9C59;
+        color: white;
+    }
+
+
     </style>
+
+
 </head>
 <body>
 <!-- Side Navigation -->
@@ -29,16 +139,16 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <a href="#" class="logo-link"><img src="assets/img/smarttrack.png" alt="Your Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
     <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Borrow</a>
-    <a href="category.php" class="nav-item "><span class="icon-placeholder"></span>Categories</a>
-    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Legends</a>
+    <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
+    <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Office</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="ticketing.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Gadget Supplies</a>
+    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
     <span class="non-clickable-item">Summary</span>
-    <a href="#" class="nav-item"><span class="icon-placeholder"></span>Product</a>
+    <a href="product.php" class="nav-item"><span class="icon-placeholder"></span>Product</a>
 </div>
 <!-- Header box container -->
 <div class="header-box">
@@ -62,7 +172,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     
     <!-- Container for Cards -->
     <div class="card-container">
-        <div class="card" id="productCard" onclick="loadTableContent('Product')">
+    <div class="card" onclick="loadTableContent('Product')">
             <h3>Product</h3>
             <p>View Table</p>
         </div>
@@ -70,35 +180,36 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
             <h3>Borrow</h3>
             <p>View Table</p>
         </div>
-        <div class="card" id="userCard" onclick="loadTableContent('User')">
+        <div class="card">
             <h3>User</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Office Supplies')">
+        <div class="card" id="suppliesCard" onclick="loadTableContent('Supplies')">
             <h3>Office Supplies</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Creative Tools')">
+        <div class="card" id="creativeToolsCard" onclick="loadTableContent('Creative Tools')">
             <h3>Office Creative Tools</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Office Devices')">
-            <h3>Office Devices</h3>
+        <div class="card" id="deviceMonitorsCard" onclick="loadTableContent('Device Monitors')">
+            <h3>Device Monitors</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Vendor Owned Devices')">
+        <div class="card">
+            <h3>Device Supplies</h3>
+            <p>View Table</p>
+        </div>
+        <div class="card" id="vendorOwnedCard" onclick="loadTableContent('Vendor Owned Devices')">
             <h3>Vendor Owned Devices</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Summary of Devices')">
-            <h3>Summary of Devices</h3>
+
+        <div class="card" id="locationCard" onclick="loadTableContent('Location')">
+            <h3>Location</h3>
             <p>View Table</p>
         </div>
-        <div class="card" onclick="loadTableContent('Legends')">
-            <h3>Legends</h3>
-            <p>View Table</p>
-        </div>
-        <div class="card" onclick="loadTableContent('Categories')">
+        <div class="card" id="categoriesCard" onclick="loadTableContent('Categories')">
             <h3>Categories</h3>
             <p>View Table</p>
         </div>
@@ -109,103 +220,249 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
     <div class="modal-content">
         <span class="close" onclick="closeModal()">&times;</span>
         <h2 id="modalTitle" style="color: #5D9C59"></h2>
-        <input type="text" id="searchInputModal" onkeyup="searchTableModal()" placeholder="Search for tickets...">
-        <div id="noTicketsMessage" style="color: #FF5733; display: none;">No tickets found.</div>
+        <input type="text" id="searchInputModal" onkeyup="searchTableModal()" placeholder="Search for records...">
+        <div id="noTicketsMessage" style="color: #FF5733; display: none;">No records found.</div>
         <div id="tableContentModal"></div>
+        <div id="pagination" class="pagination">
+    <a href="#" class="pagination-link" id="prevPageBtn" onclick="navigatePage(-1)">Prev</a>
+    <!-- Pagination links will be dynamically generated here -->
+    <a href="#" class="pagination-link" id="nextPageBtn" onclick="navigatePage(1)">Next</a>
+</div>
+
+
+        </div>
     </div>
 </div>
 
 <!-- JavaScript for fetching table content and AJAX pagination -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // No automatic loading of tables on page load
+    // No automatic loading of table content
 });
 
-function loadTableContent(tableType) {
+function loadTableContent(table) {
     var modal = document.getElementById('myModal');
     var modalTitle = document.getElementById('modalTitle');
-    modalTitle.textContent = tableType + ' Table';
-    var searchInputModal = document.getElementById('searchInputModal');
-    searchInputModal.style.display = 'block';
+    var tableContentModal = document.getElementById('tableContentModal');
+    var noTicketsMessage = document.getElementById('noTicketsMessage');
+    var pagination = document.getElementById('pagination');
 
-    fetchTicketsModal(1, tableType);
-    modal.classList.add('fade-in');
-    modal.classList.remove('fade-out');
-    modal.style.display = "block";
+    modalTitle.textContent = table + ' Table';
+    tableContentModal.innerHTML = '';
+    noTicketsMessage.style.display = 'none';
+    pagination.innerHTML = '';
+
+    fetchTableData(table, 1); // Load first page of the table data
+    modal.style.display = 'block';
 }
 
-function fetchTicketsModal(page, tableType) {
+function fetchTableData(table, page) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'fetch_tickets.php?page=' + page + '&table=' + tableType, true);
+    xhr.open('GET', 'fetch_tickets.php?table=' + table + '&page=' + page, true);
     xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status == 200) {
+        if (xhr.readyState === 4 && xhr.status === 200) {
             var response = JSON.parse(xhr.responseText);
-            if (response.tickets.length > 0) {
-                renderTableModal(response.tickets);
-                document.getElementById('noTicketsMessage').style.display = 'none';
+            var tableContentModal = document.getElementById('tableContentModal');
+            var noTicketsMessage = document.getElementById('noTicketsMessage');
+            var pagination = document.getElementById('pagination');
+
+            var tableContent = '';
+
+            if (table === 'Device Monitors') {
+                tableContent = generateDeviceMonitorsTable(response.gadget_monitor);
+            } else if (table === 'Location') {
+                tableContent = generateLocationTable(response.locations);
+            } else if (table === 'Vendor Owned Devices') {
+                tableContent = generateVendorOwnedTable(response.vendor);
+            } else if (table === 'Categories') {
+                tableContent = generateCategoriesTable(response.categories);
+            } else if (table === 'Supplies') {
+                tableContent = generateSuppliesTable(response.supplies);
+            } else if (table === 'Creative Tools') {
+                tableContent = generateCreativeToolsTable(response.creative_tools);
+            } else if (table === 'Product') { // Handle 'Product' table
+                tableContent = generateProductTable(response.products); // Generate product table
             } else {
-                document.getElementById('noTicketsMessage').style.display = 'block';
-                document.getElementById('tableContentModal').innerHTML = '';
+                tableContent = generateTicketingTable(response.tickets);
             }
+
+            tableContentModal.innerHTML = tableContent;
+
+            if (response[table.toLowerCase().replace(' ', '_')] && response[table.toLowerCase().replace(' ', '_')].length === 0) {
+                noTicketsMessage.style.display = 'block';
+            } else {
+                noTicketsMessage.style.display = 'none';
+            }
+
+            pagination.innerHTML = generatePagination(table, response.total_pages, page);
         }
     };
     xhr.send();
 }
 
-function renderTableModal(tickets) {
-    var tableContentModal = document.getElementById('tableContentModal');
-    var tableHtml = '<table id="ticketTableModal"><thead><tr><th>Ticket ID</th><th>Item Borrowed</th><th>Purpose</th><th>Status</th><th>Borrowed By</th><th>Date Borrowed</th></tr></thead><tbody>';
-    for (var i = 0; i < tickets.length; i++) {
-        tableHtml += '<tr><td>' + tickets[i].ticket_id + '</td><td>' + tickets[i].task_name + '</td><td>' + tickets[i].description + '</td><td>' + tickets[i].status + '</td><td>' + tickets[i].assigned_to + '</td><td>' + tickets[i].date_created + '</td></tr>';
-    }
-    tableHtml += '</tbody></table>';
-    tableContentModal.innerHTML = tableHtml;
+
+
+function generateProductTable(data) {
+    var tableContent = '<table><thead><tr><th>Source</th><th>Item</th><th>Category</th><th>Location</th><th>Description</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Condition</th><th>Purpose</th><th>Status</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.source + '</td><td>' + item.name + '</td><td>' + item.category + '</td><td>' + item.legends_name + '</td><td>' + item.descriptions + '</td><td>' + item.color + '</td><td>' + item.imei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.remarks + '</td><td>' + item.condition + '</td><td>' + item.purpose + '</td><td>' + item.status + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
 }
 
-function searchTableModal() {
-    var input, filter, table, tr, td, i, j, txtValue, found;
-    input = document.getElementById("searchInputModal");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("ticketTableModal");
-    tr = table.getElementsByTagName("tr");
-    found = false;
 
-    for (i = 0; i < tr.length; i++) {
-        if (tr[i].getElementsByTagName("td").length > 0) {
-            td = tr[i].getElementsByTagName("td");
-            for (j = 0; j < td.length; j++) {
-                if (td[j]) {
-                    txtValue = td[j].textContent || td[j].innerText;
-                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                        found = true;
-                        break;
-                    }
-                }
-            }
-            if (found) {
-                tr[i].style.display = "";
-                document.getElementById('noTicketsMessage').style.display = 'none';
-            } else {
-                tr[i].style.display = "none";
-            }
+
+function generateDeviceMonitorsTable(data) {
+    var tableContent = '<table><thead><tr><th>Gadget ID</th><th>Gadget Name</th><th>Cateogry</th><th>Color</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Condition</th><th>Purpose</th><th>Remarks</th><th>Location</th><th>Status</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.gadget_id + '</td><td>' + item.gadget_name + '</td><td>' + item.categories_name + '</td><td>' + item.color + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.condition + '</td><td>' + item.purpose + '</td><td>' + item.remarks + '</td><td>' + item.legends_name + '</td><td>' + item.status + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+
+function generateLocationTable(data) {
+    var tableContent = '<table><thead><tr><th>Legends Name</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.legends_name + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+
+function generateVendorOwnedTable(data) {
+    var tableContent = '<table><thead><tr><th>Item Name</th><th>Vendor Name</th><th>Contact Person</th><th>Purpose</th><th>Turnover to TSTO</th><th>Return to Vendor</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.item_name + '</td><td>' + item.vendor_name + '</td><td>' + item.contact_person + '</td><td>' + item.purpose + '</td><td>' + item.turnover_tsto + '</td><td>' + item.return_vendor + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+function generateCategoriesTable(data) {
+    var tableContent = '<table><thead><tr><th>Categories ID</th><th>Categories Name</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.categories_id + '</td><td>' + item.categories_name + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+function generateSuppliesTable(data) {
+    var tableContent = '<table><thead><tr><th>Item Name</th><th>Category</th><th>Location</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Status</th><th>Date Added</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.office_name + '</td><td>' + item.categories_name + '</td><td>' + item.legends_name + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.remarks + '</td><td>' + item.status + '</td><td>' + item.date_added + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+function generateCreativeToolsTable(data) {
+    var tableContent = '<table><thead><tr><th>Creative ID</th><th>Creative Name</th><th>IMEI</th><th>SN</th><th>Custodian</th><th>RNSS Acc</th><th>Remarks</th><th>Descriptions</th><th>Category</th><th>Location</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.creative_id + '</td><td>' + item.creative_name + '</td><td>' + item.emei + '</td><td>' + item.sn + '</td><td>' + item.custodian + '</td><td>' + item.rnss_acc + '</td><td>' + item.remarks + '</td><td>' + item.descriptions + '</td><td>' + item.categories_name + '</td><td>' + item.legends_name + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+
+function generateTicketingTable(data) {
+    var tableContent = '<table><thead><tr><th>Ticket ID</th><th>Task Name</th><th>Description</th><th>Status</th><th>Assigned To</th><th>Date Created</th></tr></thead><tbody>';
+    data.forEach(function(item) {
+        tableContent += '<tr><td>' + item.ticket_id + '</td><td>' + item.task_name + '</td><td>' + item.description + '</td><td>' + item.status + '</td><td>' + item.assigned_to + '</td><td>' + item.date_created + '</td></tr>';
+    });
+    tableContent += '</tbody></table>';
+    return tableContent;
+}
+
+function generatePagination(table, totalPages, currentPage) {
+    var paginationContent = '';
+
+    // Number of pages to display
+    var numPagesToShow = 5;
+
+    // Calculate the start and end pages
+    var startPage = Math.max(1, currentPage - Math.floor(numPagesToShow / 2));
+    var endPage = Math.min(totalPages, startPage + numPagesToShow - 1);
+
+    // Adjust the start and end pages if needed to display numPagesToShow pages
+    if (endPage - startPage + 1 < numPagesToShow) {
+        startPage = Math.max(1, endPage - numPagesToShow + 1);
+    }
+
+    // Previous button
+    if (currentPage > 1) {
+        paginationContent += '<a href="#" class="pagination-link" onclick="fetchTableData(\'' + table + '\', ' + (currentPage - 1) + ')">Prev</a>';
+    }
+
+    // Ellipsis if start page is greater than 1
+    if (startPage > 1) {
+        paginationContent += '<span class="pagination-ellipsis">...</span>';
+    }
+
+    // Page links
+    for (var i = startPage; i <= endPage; i++) {
+        if (i === currentPage) {
+            paginationContent += '<a href="#" class="pagination-link active" onclick="fetchTableData(\'' + table + '\', ' + i + ')">' + i + '</a>';
+        } else {
+            paginationContent += '<a href="#" class="pagination-link" onclick="fetchTableData(\'' + table + '\', ' + i + ')">' + i + '</a>';
         }
     }
 
-    if (!found) {
-        document.getElementById('noTicketsMessage').style.display = 'block';
+    // Ellipsis if end page is less than total pages
+    if (endPage < totalPages) {
+        paginationContent += '<span class="pagination-ellipsis">...</span>';
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+        paginationContent += '<a href="#" class="pagination-link" onclick="fetchTableData(\'' + table + '\', ' + (currentPage + 1) + ')">Next</a>';
+    }
+
+    return paginationContent;
+}
+function closeModal() {
+    var modal = document.getElementById('myModal');
+    modal.style.display = 'none';
+}
+
+function searchTableModal() {
+    var input, filter, table, tr, td, i, j, txtValue;
+    input = document.getElementById('searchInputModal');
+    filter = input.value.toUpperCase();
+    table = document.querySelector('#tableContentModal table');
+    tr = table.getElementsByTagName('tr');
+
+    for (i = 1; i < tr.length; i++) { // Start from 1 to skip the header row
+        tr[i].style.display = 'none'; // Hide all rows initially
+
+        td = tr[i].getElementsByTagName('td');
+        for (j = 0; j < td.length; j++) {
+            if (td[j]) {
+                txtValue = td[j].textContent || td[j].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = ''; // Show the row if a match is found
+                    break; // Exit the loop to avoid redundant checks
+                }
+            }
+        }
     }
 }
 
-function closeModal() {
-    var modal = document.getElementById('myModal');
-    modal.classList.add('fade-out');
-    modal.classList.remove('fade-in');
-
-    setTimeout(function() {
-        modal.style.display = "none";
-    }, 500);
-}
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+        var modals = document.getElementsByClassName("modal");
+        for (var i = 0; i < modals.length; i++) {
+            var modal = modals[i];
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    }
 </script>
-
 </body>
 </html>
