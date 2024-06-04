@@ -213,8 +213,10 @@ $result = $conn->query($sql);
     <style>
         .table-container {
     max-height: 400px; /* Set a maximum height for the table container */
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */ 
 }
+
+
         .container {
             overflow-x: auto;
             width: 100%;
@@ -232,6 +234,10 @@ $result = $conn->query($sql);
             overflow: hidden;
         }
 
+        th{
+            color: #5D9C59;
+            background-color: #f2f2f2;
+        }
         .modal {
             display: none; /* Hidden by default */
             position: fixed; /* Stay in place */
@@ -416,10 +422,68 @@ $result = $conn->query($sql);
     cursor: pointer;
 }
 
-.unclickable {
-        pointer-events: none;
-        background-color: #e9ecef; /* Optional: to give a visual cue */
-    }
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
 
 
     </style>
@@ -464,58 +528,58 @@ $result = $conn->query($sql);
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
+    <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
     </div>
+    </div>
 </div>
 
 
 <!-- Main Content -->
-<div class="main-content">
+<div class="main-content" style=" height:650px;">
     <div id="container" class="container">
     <?php
+echo '<form action="" method="post">';
+echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+echo '<h1 style="color: #5D9C59;">Manage Creative Tools</h1>';
+echo '<input type="submit" name="delete_creative_tool" value="Delete">';
+echo '</div>';
+
+if (!empty($successMessage)) {
+    echo '<div class="message success">' . $successMessage . '</div>';
+} elseif (!empty($errorMessage)) {
+    echo '<div class="message error">' . $errorMessage . '</div>';
+}
+
+echo '<div class="table-container">'; // Add a container div for the table
+echo '<table>';
+echo '<thead>';
+echo '<tr>';
+echo '<th></th>'; // Checkbox column
+echo '<th>Asset ID</th>';
+echo '<th>Item Name</th>';
+echo '<th>Category</th>';
+echo '<th>Legend</th>';
+echo '<th>Qty</th>'; // New column for qty
+echo '<th>Status</th>';
+echo '<th>Actions</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
+
 if ($result->num_rows > 0) {
-    
-    echo '<form action="" method="post">';
-    echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-    
-    echo '<h2 style="color: #5D9C59;">Manage Creative Tools</h2>';
- 
-    echo '<input type="submit" name="delete_creative_tool" value="Delete">';
-    echo '</div>';
-       
-    if (!empty($successMessage)) {
-        echo '<div class="message success">' . $successMessage . '</div>';
-    } elseif (!empty($errorMessage)) {
-        echo '<div class="message error">' . $errorMessage . '</div>';
-    }
-    echo '<div class="table-container">'; // Add a container div for the table
-
-    echo '<table>';
-    echo '<thead>';
-    echo '<tr>';
-    echo '<th></th>'; // Checkbox column
-    echo '<th>Item ID</th>';
-    echo '<th>Name</th>';
-    echo '<th>Category</th>';
-    echo '<th>Legend</th>';
-    echo '<th>Qty</th>'; // New column for qty
-    echo '<th>Status</th>';
-    echo '<th>Actions</th>';
-    echo '</tr>';
-    echo '</thead>';
-    echo '<tbody>';
-
     while ($row = $result->fetch_assoc()) {
         echo '<tr>';
         echo '<td><input type="checkbox" name="creative_ids[]" value="' . $row["creative_id"] . '"></td>';
@@ -532,14 +596,14 @@ if ($result->num_rows > 0) {
 
         echo '</tr>';
     }
-
-    echo '</tbody>';
-    echo '</table>';
-    echo '</div>';
-    echo '</form>';
 } else {
-    echo '<p>No creative tools found.</p>';
+    echo '<tr><td colspan="8">No creative tools found.</td></tr>';
 }
+
+echo '</tbody>';
+echo '</table>';
+echo '</div>';
+echo '</form>';
 ?>
 
         <br>
@@ -596,8 +660,6 @@ if ($result->num_rows > 0) {
                     <label for="edit_status">Status:</label>
                 <select name="edit_status" id="edit_status">
                     <option value="Available">Available</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
                     <option value="Returned">Returned</option>
                 </select><br>
 
@@ -622,7 +684,7 @@ if ($result->num_rows > 0) {
         
                                    <!-- Categories dropdown -->
                                    <label for="edit_categories_id">Category:</label>
-                <select class="unclickable" name="edit_categories_id" id="edit_categories_id" >
+            <select name="edit_categories_id" disabled>
                 <?php
                 // Fetch and display categories options
                 $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
@@ -634,7 +696,7 @@ if ($result->num_rows > 0) {
 
             <!-- Legends dropdown -->
             <label for="edit_legends_id">Location:</label>
-                <select name="edit_legends_id" id="edit_legends_id" class="unclickable">
+            <select name="edit_legends_id" disabled>
                 <?php
                 // Fetch and display legends options
                 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
@@ -690,7 +752,7 @@ if ($result->num_rows > 0) {
                 <div id="viewContent" class="view-content">
                     <table>
                         <tr>
-                            <td><strong>Item D:</strong></td>
+                            <td><strong>Asset ID:</strong></td>
                             <td id="creativeId"></td>
                         </tr>
                         <tr>
@@ -719,10 +781,6 @@ if ($result->num_rows > 0) {
                             <td id="creativeQty"></td>
                         </tr>
 
-                        <tr>
-                            <td><strong>Reference RNSS:</strong></td>
-                            <td id="creativeRefRNSS"></td>
-                        </tr>
         
                         <tr>
                             <td><strong>Custodian:</strong></td>
@@ -771,7 +829,7 @@ function openViewModal(row) {
     var modal = document.getElementById("viewModal");
 
     // Fill in data in modal
-    document.getElementById("creativeId").textContent = row.creative_id;
+    document.getElementById("creativeId").textContent = row.unique_creative_id;
     document.getElementById("creativeName").textContent = row.creative_name;
     document.getElementById("creativeCategory").textContent = row.categories_name;
     document.getElementById("creativeLegend").textContent = row.legends_name;
@@ -854,6 +912,24 @@ setTimeout(function() {
         errorMessage.style.display = 'none';
     }
 }, 2000);
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
 
     
 </script>

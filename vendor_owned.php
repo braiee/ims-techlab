@@ -205,6 +205,77 @@ input[type="date"] {
     padding: 10px;
     margin-bottom: 10px;
 }
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+.table-container td {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+
+
     </style>
 </head>
 <body>
@@ -245,57 +316,59 @@ input[type="date"] {
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
-        <ul class="nav-links">
+        <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
-    </div>
+    </div>    </div>
 </div>
 
 
-<div class="main-content">
+<div class="main-content" style="overflow: hidden; height:650px;">
     <div class="container">
-        <?php
-        if ($result->num_rows > 0) {
-            echo '<form action="vendor_owned.php" method="post">';
-            echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-            echo '<h2 style="color: #5D9C59;">Manage Vendor-Owned Items</h2>';
-            echo '<input type="submit" name="delete_vendor_owned" value="Delete" class="btn-delete" style="background-color:#DDF7E3; color:#5D9C59;">';
-            echo '</div>';
+    <?php
+echo '<form action="vendor_owned.php" method="post">';
+echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+echo '<h1 style="color: #5D9C59;">Manage Vendor-Owned Items</h1>';
+echo '<input type="submit" name="delete_vendor_owned" value="Delete" class="btn-delete" style="background-color:#DDF7E3; color:#5D9C59;">';
+echo '</div>';
 
-            echo '<div class="table-container">'; // Add a container div for the table
+if (!empty($successMessage)) {
+    echo '<div class="success-message">' . $successMessage . '</div>';
+} elseif (!empty($errorMessage)) {
+    echo '<div class="error-message">' . $errorMessage . '</div>';
+}
 
-            echo '<table>';
+echo '<div class="table-container">'; // Add a container div for the table
 
-            if (!empty($successMessage)) {
-                echo '<div class="success-message">' . $successMessage . '</div>';
-            } elseif (!empty($errorMessage)) {
-                echo '<div class="error-message">' . $errorMessage . '</div>';
-            }
+echo '<table>';
+echo '<thead>';
+echo '<tr>';
+echo '<th></th>'; // Checkbox column
+echo '<th>Item Name</th>';
+echo '<th>Vendor Name</th>';
+echo '<th>Con. Person</th>';
+echo '<th>Purpose</th>';
+echo '<th>Loc.</th>';
+echo '<th>Turnover (TSTO)</th>';
+echo '<th>Project Lead.</th>';
+echo '<th>Date of Ret.</th>';
+echo '<th>Edit</th>';
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
 
-            echo '<thead>';
-            echo '<tr>';
-            echo '<th></th>'; // Checkbox column
-            echo '<th>Item Name</th>';
-            echo '<th>Vendor Name</th>';
-            echo '<th>Con. Person</th>';
-            echo '<th>Purpose</th>';
-            echo '<th>Loc.</th>';
-            echo '<th>Turnover (TSTO)</th>';
-            echo '<th>Project Lead.</th>';
-            echo '<th>Date of Ret.</th>';
-            echo '<th>Edit</th>';
-            echo '</tr>';
-            echo '</thead>';
-            echo '<tbody>';
-
+if ($result->num_rows > 0) {
     // Output data of each row
     while ($row = $result->fetch_assoc()) {
         echo '<tr>';
@@ -311,16 +384,17 @@ input[type="date"] {
         echo '<td><button type="button" class="btn-edit" onclick="openEditModal(\'' . $row["vendor_id"] . '\', \'' . $row["item_name"] . '\', \'' . $row["vendor_name"] . '\', \'' . $row["contact_person"] . '\', \'' . $row["purpose"] . '\', \'' . $row["turnover_tsto"] . '\', \'' . $row["return_vendor"] . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\', \'' . $row["project_lead"] . '\')">Edit</button></td>'; // Include Project Lead in the edit button
         echo '</tr>';
     }
-            echo '</tbody>';
-            echo '</table>';
-            echo '</div>'; // Close the table container
+} else {
+    echo '<tr><td colspan="10">No vendor-owned items found.</td></tr>';
+}
 
-            echo '</form>';
-        } else {
-            echo "No vendor-owned items found.";
-        }
-        $conn->close();
-        ?>
+echo '</tbody>';
+echo '</table>';
+echo '</div>'; // Close the table container
+
+echo '</form>';
+$conn->close();
+?>
         <br>
         <!-- Add Button -->
         <button onclick="openAddModal()" class="btn-add">Add Vendor-Owned Item</button>
@@ -473,6 +547,24 @@ function closeAddModal() {
             }
         }
     }
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
 </script>
 
 </body>

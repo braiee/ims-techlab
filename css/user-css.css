@@ -17,7 +17,7 @@ label {
 
 .container {
     width: 140%;
-    max-width: 1200px;
+    max-width: 1150px;
     margin: 20px auto;
     padding: 20px;
     border: 1px solid #ddd;
@@ -40,6 +40,8 @@ table {
 .table-container {
     max-height: 400px;
     overflow-y: auto;
+    width: 100%;
+
 }
 
 .borrow-button {

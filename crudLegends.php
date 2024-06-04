@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_legend'])) {
 
     $sql = "INSERT INTO legends (legends_name, abv) VALUES ('$legend_name', '$legend_abv')";
     if ($conn->query($sql) === TRUE) {
-        $successMessage = "Legend added successfully.";
+        $successMessage = "Location added successfully.";
     } else {
         $errorMessage = "Error adding legend: " . $conn->error;
     }
@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_legend'])) {
 
     $sql = "UPDATE legends SET legends_name='$legend_name', abv='$legend_abv' WHERE legends_id='$legend_id'";
     if ($conn->query($sql) === TRUE) {
-        $successMessage = "Legend updated successfully.";
+        $successMessage = "Location updated successfully.";
     } else {
         $errorMessage = "Error updating legend: " . $conn->error;
     }

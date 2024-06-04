@@ -7,7 +7,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-}
+    }
 
 label {
     font-family: 'Josefin Sans', sans-serif;
@@ -34,7 +34,7 @@ label {
     border-radius: 5px;
     box-shadow: 0 0 46.7px rgba(0, 0, 0, 0.1);
     background-color: #C7E8CA;
-    overflow: auto; /* Hide overflow content */
+    overflow: hidden; /* Hide overflow content */
 }
 
 /* Ensure that the table container doesn't affect the layout */

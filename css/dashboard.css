@@ -95,6 +95,26 @@ body {
     align-items: center;
 }
 
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links li {
+    display: inline;
+    margin-left: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-size: 18px;
+}
+
+.nav-links a.active {
+    color: #4CAF50;
+}
 
 /* Main Content */
 /* Greeting */

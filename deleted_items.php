@@ -1,4 +1,7 @@
 <?php
+
+date_default_timezone_set('Asia/Manila');
+
 session_start();
 include 'db-connect.php';
 
@@ -390,6 +393,10 @@ padding-top: 60px;
         width: 80%; /* Could be more or less, depending on screen size */
     }
 
+    th{
+            color: #5D9C59;
+            background-color: #f2f2f2;
+        }
     .close {
         color: #aaa;
         float: right;
@@ -403,6 +410,78 @@ padding-top: 60px;
         text-decoration: none;
         cursor: pointer;
     }
+
+    .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+.view-data-btn {
+ background-color: #DDF7E3;
+ color: #5D9C59;
+ padding: 10px 20px;
+ border: none;
+ margin-bottom: 10px;
+}
+
 </style>
 </head>
 <body>
@@ -442,18 +521,21 @@ padding-top: 60px;
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
+    <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
-                    <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    <a href="user-users.php">
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
+        </div>
     </div>
 </div>
 
@@ -609,6 +691,26 @@ viewDataButtons.forEach(function(button) {
         document.getElementById('filterInput').value = filter;
         document.getElementById('searchFilterForm').submit();
     }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
+
 
     </script>
 </body>

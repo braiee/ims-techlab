@@ -58,6 +58,118 @@ function getTotalItemCount($conn, $table_name) {
     <link rel="stylesheet" href="css/Dashboard.css">
     <link rel="stylesheet" href="css/Ticket_style.css">
     <title>Manage Categories</title>
+
+    <style>
+
+.btn-add, .btn-delete, .btn-edit {
+        padding: 10px 15px;
+        margin-right: 10px;
+        color: #5D9C59;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .btn-add {
+        background-color: #DDF7E3;
+    }
+
+    .notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
+    .btn-edit {
+        background-color: #DDF7E3; /* Green color */
+    }
+    .btn-edit:hover{
+                background-color: #ddf7e3ac;
+            }
+            
+            .btn-add:hover{
+                background-color: #ddf7e3ac;
+            }
+    .success-message, .error-message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.success-message {
+    color: #5D9C59; /* Green text color */
+}
+
+.error-message {
+    color: #D8000C; /* Red text color */
+}
+
+            .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+
+    </style>
 </head>
 
 <body>
@@ -97,27 +209,29 @@ function getTotalItemCount($conn, $table_name) {
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
-        <ul class="nav-links">
+        <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
     </div>
+
+    </div>
 </div>
 
 
 
-<div class="main-content">
+<div class="main-content" style="overflow: hidden; height:650px;">
     <div class="container">
-
-      
-
         <form action="crudCategories.php" method="post">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h2 style="color: #5D9C59;">Manage Categories</h2>
@@ -125,53 +239,50 @@ function getTotalItemCount($conn, $table_name) {
                     <input type="submit" name="delete_category" value="Delete" class="btn-delete">
                 </div>
             </div>
-  <!-- Success and Error Messages -->
-  <?php if (!empty($successMessage)) : ?>
-            <div class="success-message">
-                <?php echo $successMessage; ?>
+
+            <!-- Success and Error Messages -->
+            <?php if (!empty($successMessage)) : ?>
+                <div class="success-message">
+                    <?php echo $successMessage; ?>
+                </div>
+            <?php endif; ?>
+            <?php if (!empty($errorMessage)) : ?>
+                <div class="error-message">
+                    <?php echo $errorMessage; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Table Headers -->
+            <div class="table-container"> 
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th> <!-- Checkbox column -->
+                            <th>Category</th>
+                            <th>Abbreviation</th>
+                            <th>Action</th> <!-- Edit button column -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($result->num_rows > 0) {
+                            // Output data of each row
+                            while ($row = $result->fetch_assoc()) {
+                                echo '<tr>';
+                                echo '<td><input type="checkbox" name="select_category[]" value="' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . '"></td>'; // Checkbox
+                                echo '<td>' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '</td>';
+                                echo '<td>' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '</td>';
+                                echo '<td><button type="button" onclick="showEditCategoryModal(' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . ', \'' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '\', \'' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '\')" class="btn-edit">Edit</button></td>';
+                                echo '</tr>';
+                            }
+                        } else {
+                            echo '<tr><td colspan="4">No categories found.</td></tr>';
+                        }
+                        $conn->close();
+                        ?>
+                    </tbody>
+                </table>
             </div>
-        <?php endif; ?>
-        <?php if (!empty($errorMessage)) : ?>
-            <div class="error-message">
-                <?php echo $errorMessage; ?>
-            </div>
-        <?php endif; ?>
-            <?php
-            if ($result->num_rows > 0) {
-
-                echo '<div class="table-container">'; // Add a container div for the table
-
-                echo '<table>';
-                echo '<thead>';
-                echo '<tr>';
-                echo '<th></th>'; // Checkbox column
-                echo '<th>Category</th>';
-                echo '<th>Abbreviation</th>';
-                echo '<th>Action</th>'; // Edit button column
-                echo '</tr>';
-                echo '</thead>';
-                echo '<tbody>';
-
-                // Output data of each row
-                while ($row = $result->fetch_assoc()) {
-                    echo '<tr>';
-                    echo '<td><input type="checkbox" name="select_category[]" value="' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . '"></td>'; // Checkbox
-                    echo '<td>' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '</td>';
-                    echo '<td>' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '</td>';
-                    echo '<td><button type="button" onclick="showEditCategoryModal(' . htmlspecialchars($row["categories_id"], ENT_QUOTES, 'UTF-8') . ', \'' . htmlspecialchars($row["categories_name"], ENT_QUOTES, 'UTF-8') . '\', \'' . htmlspecialchars($row["abv"], ENT_QUOTES, 'UTF-8') . '\')" class="btn-edit">Edit</button></td>';
-                    echo '</tr>';
-                }
-
-                echo '</tbody>';
-                echo '</table>';
-                echo '</div>';
-
-           
-            } else {
-                echo "No categories found.";
-            }
-            $conn->close();
-            ?>
         </form>
 
         <!-- Add button at the bottom left -->
@@ -255,54 +366,28 @@ function getTotalItemCount($conn, $table_name) {
     window.onload = function() {
         hideMessages();
     };
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
 </script>
 
-<!-- CSS for buttons (for illustration purposes, you can adjust as needed) -->
-<style>
-    .btn-add, .btn-delete, .btn-edit {
-        padding: 10px 15px;
-        margin-right: 10px;
-        color: #5D9C59;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-add {
-        background-color: #DDF7E3;
-    }
 
-    .notification-badge {
-    background-color: red;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 50%;
-    margin-left: 4px;
-}
-    .btn-edit {
-        background-color: #DDF7E3; /* Green color */
-    }
-    .btn-edit:hover{
-                background-color: #ddf7e3ac;
-            }
-            
-            .btn-add:hover{
-                background-color: #ddf7e3ac;
-            }
-    .success-message, .error-message {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-}
-
-.success-message {
-    color: #5D9C59; /* Green text color */
-}
-
-.error-message {
-    color: #D8000C; /* Red text color */
-}
-</style>
 
 </body>
 </html>

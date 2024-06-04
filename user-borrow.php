@@ -20,6 +20,9 @@ $result_gadget_monitor = $conn->query($sql_gadget_monitor);
 $sql_office_supplies = "SELECT * FROM office_supplies WHERE status = 'Available'";
 $result_office_supplies = $conn->query($sql_office_supplies);
 
+// Check if all result sets are empty
+$isEmpty = ($result_creative_tools->num_rows == 0) && ($result_gadget_monitor->num_rows == 0) && ($result_office_supplies->num_rows == 0);
+
 
 function getBorrowedItemCount($conn, $user_id) {
     $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status IN ('Approved', 'Not Approved')";
@@ -111,6 +114,70 @@ function getPendingItemCount($conn, $user_id) {
     margin-bottom: 20px;
 }
 
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+
 </style>
     <title>Borrow Items</title>
 </head>
@@ -135,17 +202,21 @@ function getPendingItemCount($conn, $user_id) {
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
-        <ul class="nav-links">
+        <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="user-users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
+        </div>
     </div>
 </div>
 
@@ -168,32 +239,38 @@ function getPendingItemCount($conn, $user_id) {
                     </tr>
                 </thead>
                 <tbody>
-            <?php while ($row = $result_creative_tools->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['creative_name']; ?></td>
-                    <td>Creative Tools</td>
-                    <td><?php echo $row['status']; ?></td>
-                    <td><button class="borrow-button" onclick="openModal('Creative Tools', '<?php echo $row['creative_id']; ?>')">Borrow</button></td>
-                </tr>
-            <?php endwhile; ?>
+                <?php if ($isEmpty): ?>
+    <tr>
+        <td colspan="4" style="color: red; font-weight: bold; text-align: center;">No available items for borrowing found.</td>
+    </tr>
+<?php else: ?>
+    <?php while ($row = $result_creative_tools->fetch_assoc()): ?>
+        <tr>
+            <td><?php echo $row['creative_name']; ?></td>
+            <td>Creative Tools</td>
+            <td><?php echo $row['status']; ?></td>
+            <td><button class="borrow-button" onclick="openModal('Creative Tools', '<?php echo $row['creative_id']; ?>')">Borrow</button></td>
+        </tr>
+    <?php endwhile; ?>
 
-            <?php while ($row = $result_gadget_monitor->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['gadget_name']; ?></td>
-                    <td>Gadget Monitor</td>
-                    <td><?php echo $row['status']; ?></td>
-                    <td><button class="borrow-button" onclick="openModal('Gadget Monitor', '<?php echo $row['gadget_id']; ?>')">Borrow</button></td>
-                </tr>
-            <?php endwhile; ?>
+    <?php while ($row = $result_gadget_monitor->fetch_assoc()): ?>
+        <tr>
+            <td><?php echo $row['gadget_name']; ?></td>
+            <td>Gadget Monitor</td>
+            <td><?php echo $row['status']; ?></td>
+            <td><button class="borrow-button" onclick="openModal('Gadget Monitor', '<?php echo $row['gadget_id']; ?>')">Borrow</button></td>
+        </tr>
+    <?php endwhile; ?>
 
-            <?php while ($row = $result_office_supplies->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['office_name']; ?></td>
-                    <td>Office Supplies</td>
-                    <td><?php echo $row['status']; ?></td>
-                    <td><button class="borrow-button" onclick="openModal('Office Supplies', '<?php echo $row['office_id']; ?>')">Borrow</button></td>
-                </tr>
-            <?php endwhile; ?>
+    <?php while ($row = $result_office_supplies->fetch_assoc()): ?>
+        <tr>
+            <td><?php echo $row['office_name']; ?></td>
+            <td>Office Supplies</td>
+            <td><?php echo $row['status']; ?></td>
+            <td><button class="borrow-button" onclick="openModal('Office Supplies', '<?php echo $row['office_id']; ?>')">Borrow</button></td>
+        </tr>
+    <?php endwhile; ?>
+<?php endif; ?>
 
         </tbody>
     </table>
@@ -279,7 +356,24 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
 
-        
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
     </script>
 </body>
 </html>

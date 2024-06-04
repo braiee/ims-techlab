@@ -1,4 +1,7 @@
 <?php
+
+date_default_timezone_set('Asia/Manila');
+
 session_start();
 include 'db-connect.php'; // Include your database connection script
 
@@ -124,7 +127,7 @@ button {
 }
 
 /* Hover effect for buttons */
-button:hover {
+.btn:hover {
     background-color: #45a049; /* Darker green on hover */
 }
 .notification-badge {
@@ -134,6 +137,75 @@ button:hover {
     border-radius: 50%;
     margin-left: 4px;
 }
+
+th{
+            color: #5D9C59;
+            background-color: #f2f2f2;
+        }
+
+        .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
     </style>
 </head>
 <body>
@@ -175,12 +247,16 @@ button:hover {
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
-        <ul class="nav-links">
+        <!-- Navigation links -->
+        <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
@@ -188,14 +264,15 @@ button:hover {
         </ul>
     </div>
 </div>
+</div>
 
 
-    <div class="center-container">
+<div class="center-container" style=" height:540px; "> 
 
    <div class="container">
-        <h1>Returned Items</h1>
+        <h1 style="color:#5D9C59;">Returned Items</h1>
         <!-- Table for returned items -->
-        <div class="table-container">
+        <div class="table-container" >
             <table>
             <thead>
             <tr>
@@ -204,40 +281,45 @@ button:hover {
                     <th>Category</th>
                     <th>Status</th>
                     <th>Borrow Date</th>
-                    <th>Duration</th>
+                    <th>Return Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row = $result->fetch_assoc()): ?>
-                    <tr>
-                    <td><?php echo htmlspecialchars($row['username']); ?></td>
-
-                        <td><?php echo htmlspecialchars($row['item_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['category']); ?></td>
-                        <td><?php echo htmlspecialchars($row['status']); ?></td>
-                        <td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
-                        <td><?php echo htmlspecialchars($row['duration']); ?></td>
-                        <td>
-    <form action="record_returned_item.php" method="POST">
-        <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
-        <input type="hidden" name="item_name" value="<?php echo $row['item_name']; ?>">
-        <input type="hidden" name="username" value="<?php echo $_SESSION['username']; ?>">
-        <button type="submit" name="record">Record</button>
-    </form>
-    <form action="change_status.php" method="POST">
-        <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
-        <button type="submit" name="received">Received</button>
-    </form>
-</td>
-
-                    </tr>
-                <?php endwhile; ?>
+            <?php if ($result->num_rows > 0): ?>
+    <?php while ($row = $result->fetch_assoc()): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($row['username']); ?></td>
+            <td><?php echo htmlspecialchars($row['item_name']); ?></td>
+            <td><?php echo htmlspecialchars($row['category']); ?></td>
+            <td><?php echo htmlspecialchars($row['status']); ?></td>
+            <td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
+            <td><?php echo htmlspecialchars($row['duration']); ?></td>
+            <td>
+                <form action="record_returned_item.php" method="POST">
+                    <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
+                    <input type="hidden" name="item_name" value="<?php echo $row['item_name']; ?>">
+                    <input type="hidden" name="username" value="<?php echo $_SESSION['username']; ?>">
+                    <button class="btn" type="submit" name="record">Record</button>
+                </form>
+                <br>
+                <form action="change_status.php" method="POST">
+                    <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
+                    <button class="btn" type="submit" name="received">Received</button>
+                </form>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+<?php else: ?>
+    <tr>
+        <td colspan="7" style="color: red; font-weight: bold; text-align: center;">No records found</td>
+    </tr>
+<?php endif; ?>
             </tbody>
         </table>
         </div>
         <!-- Table for returned items history -->
-        <h1>Returned Items History</h1>
+        <h1 style="color:#5D9C59;">Returned Items History</h1>
         <div class="table-container">
 
         <table>
@@ -250,14 +332,20 @@ button:hover {
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row_history = $result_history->fetch_assoc()): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($row_history['item_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row_history['username']);?></td>
-                        <td><?php echo htmlspecialchars($row_history['received_by']); ?></td>
-                        <td><?php echo htmlspecialchars($row_history['received_date']); ?></td>
-                    </tr>
-                <?php endwhile; ?>
+        <?php if ($result_history->num_rows > 0): ?>
+            <?php while ($row_history = $result_history->fetch_assoc()): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($row_history['item_name']); ?></td>
+                    <td><?php echo htmlspecialchars($row_history['username']); ?></td>
+                    <td><?php echo htmlspecialchars($row_history['received_by']); ?></td>
+                    <td><?php echo htmlspecialchars($row_history['received_date']); ?></td>
+                </tr>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="4">No records found</td>
+            </tr>
+        <?php endif; ?>
             </tbody>
         </table>
         </div>
@@ -269,6 +357,26 @@ button:hover {
         ?>
     </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
+</script>
 
 </body>
 </html>

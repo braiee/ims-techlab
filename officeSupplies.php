@@ -85,7 +85,7 @@ $categoriesResult = $conn->query("SELECT categories_id, categories_name FROM cat
 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
 // Fetch status options excluding "Deleted"
-$statusOptions = array("Available", "Pending", "Approved", "Returned", "Not Available");
+$statusOptions = array("Available", "Not Available");
 
 // Function to get category name based on category ID
 function getCategoryName($category_id, $conn) {
@@ -126,6 +126,7 @@ function getLegendName($legend_id, $conn) {
 </head>
 
 <style>
+    
 table {
             width: 100%;
             border-collapse: collapse;
@@ -179,6 +180,71 @@ table {
         background-color: #e9ecef; /* Optional: to give a visual cue */
     }
 
+    .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+
+
 
 </style>
 
@@ -220,49 +286,46 @@ table {
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
+    <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
     </div>
+
+    </div>
 </div>
 
 
 
-<div class="main-content">
-    <div class="container">
+<div class="main-content" style="overflow: hidden; height:650px;">
+    
+<div class="container">
+    <form action="" method="post">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="color: #5D9C59;">Manage Office Supplies</h2>
+            <input type="submit" name="delete" value="Delete">
+        </div>
+
         <?php
         if ($result->num_rows > 0) {
-            echo '<form action="" method="post">';
-            echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-            echo '<h2 style="color: #5D9C59;">Manage Office Supplies</h2>';
-            echo '<input type="submit" name="delete" value="Delete">';
-            echo '</div>';
-
-            if (isset($_GET['success'])) {
-                $successMessage = urldecode($_GET['success']);
-                echo '<div class="success-message">' . $successMessage . '</div>';
-            } elseif (!empty($errorMessage)) {
-                echo '<div class="message-container">';
-                echo '<div class="error-message">' . $errorMessage . '</div>';
-                echo '</div>';
-            }
-
+            // Start of table-container
             echo '<div class="table-container">';
             echo '<table>';
             echo '<thead>';
             echo '<tr>';
             echo '<th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>';
-            echo '<th>Item ID</th>';
-            echo '<th>Item</th>';
+            echo '<th>Asset ID</th>';
+            echo '<th>Item Name</th>';
             echo '<th>Loc.</th>';
             echo '<th>Cat.</th>';
             echo '<th>Cust.</th>';
@@ -286,20 +349,46 @@ table {
                 echo '<td>' . $row["status"] . '</td>'; // Display status
                 echo '<td><button class="edit-button" type="button" onclick="editOfficeSupply(' . $row["office_id"] . ', \'' . addslashes($row["office_name"]) . '\', \'' . addslashes($row["custodian"]) . '\', \'' . addslashes($row["remarks"]) . '\', \'' . $row["categories_id"] . '\', \'' . $row["legends_id"] . '\', \'' . $row["status"] . '\', \'' . $row["unique_legends_id"] . '\')">Edit</button></td>';
                 echo '</tr>';
-                            }
+            }
 
+            // End of table-container
             echo '</tbody>';
             echo '</table>';
-            echo '</div>'; // End of table-container
-            echo '</form>';
+            echo '</div>';
         } else {
-            echo "No office supplies found.";
+            // No office supplies found
+            echo "<div class='table-container'>";
+            echo "<table>";
+            echo "<thead>";
+            echo "<tr>";
+            echo "<th></th>"; // Empty cell for checkbox
+            echo "<th>Asset ID</th>";
+            echo "<th>Item Name</th>";
+            echo "<th>Loc.</th>";
+            echo "<th>Cat.</th>";
+            echo "<th>Cust.</th>";
+            echo "<th>Rem.</th>";
+            echo "<th>Status</th>";
+            echo "<th>Action</th>"; // New column for actions
+            echo "</tr>";
+            echo "</thead>";
+            echo "<tbody>";
+            // Output an empty row to keep the table structure visible
+            echo "<tr>";
+            echo "<td colspan='9'>No office supplies found.</td>"; // Span all columns
+            echo "</tr>";
+            echo "</tbody>";
+            echo "</table>";
+            echo "</div>";
         }
         $conn->close();
         ?>
+
         <!-- Button to open modal -->
-        <button class="assign-button" onclick="openModal()">Add Office Supply</button>
-    </div>
+    </form>
+    <button class="assign-button" onclick="openModal()">Add Office Supply</button>
+
+</div>
 </div>
 
 <!-- The Modal for Adding Office Supplies -->
@@ -314,15 +403,10 @@ table {
             <label for="custodian">Custodian:</label>
             <input type="text" id="custodian" name="custodian" placeholder="Enter custodian" >
             <label for="remarks">Remarks:</label><br>
-            <select id="remarks" name="remarks" >
-                <option disabled selected>Select condition</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
-                <option value="Poor">Poor</option>
-            </select>
+            <input type="text" id="remarks" name="remarks" placeholder="Enter remarks"></input>
 
             <label for="categories_id">Category:</label>
-            <select id="categories_id" name="categories_id">
+            <select id="categories_id" name="categories_id" required>
                 <option value="">Select Category</option>
                 <?php
                 // Reset categoriesResult cursor
@@ -338,7 +422,9 @@ table {
                 ?>
             </select>
             <label for="legends_id">Location:</label>
-            <select id="legends_id" name="legends_id">
+            <select id="legends_id" name="legends_id" required>
+            <option value="">Select Location</option>
+
                 <?php
                 // Fetch and populate legends from the database
                 while ($legend = $legendsResult->fetch_assoc()) {
@@ -484,6 +570,24 @@ window.onclick = function(event) {
         const checkboxes = document.querySelectorAll('input[name="office_ids[]"]');
         checkboxes.forEach(checkbox => checkbox.checked = selectAllCheckbox.checked);
     }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
 
 </script>
 

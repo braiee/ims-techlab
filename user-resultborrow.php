@@ -140,7 +140,7 @@ $result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Borrowed Items Result</title>
     <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/user-css.css">
+    <link rel="stylesheet" href="css/User-css.css">
 
     <style>
             /* Style for select element */
@@ -184,6 +184,68 @@ $result = $stmt->get_result();
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
     </style>
 
 </head>
@@ -209,15 +271,24 @@ $result = $stmt->get_result();
 <!-- Header box container -->
 <div class="header-box">
         <div class="header-box-content">
-            <!-- Navigation links -->
-            <ul class="nav-links">
+        <!-- Navigation links -->
+        <!-- Navigation links -->
+       <!-- Navigation links -->
+       <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
+            <!-- Display greeting message -->
+            <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="user-users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
-                        </ul>
+            <?php endif; ?>
+        </ul>
+        </div>
         </div>
     </div>
     <div class="center-container">
@@ -253,14 +324,14 @@ $result = $stmt->get_result();
                     <td><?php echo htmlspecialchars($row['item_name']); ?></td>
                     <td><?php echo htmlspecialchars($row['category']); ?></td>
                     <td><?php echo htmlspecialchars($row['status']); ?></td>
-                    <td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
-                    <td><?php echo htmlspecialchars($row['duration']); ?></td>
+                    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
+                    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
                     <td><?php echo htmlspecialchars($row['decided_by']); ?></td>
                     <td>
                         <?php if ($row['status'] === 'Approved'): ?>
                             <form action="user-returnrequest.php" method="POST">
                                 <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
-                                <button type="submit">Returned</button>
+                                <button type="submit">Return</button>
                             </form>
                         <?php elseif ($row['status'] === 'Not Approved'): ?>
                             <form action="user-cancelrequest.php" method="POST">
@@ -400,6 +471,23 @@ window.onclick = function(event) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
 
 </script>
 </body>

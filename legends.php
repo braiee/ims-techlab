@@ -56,16 +56,130 @@ function getTotalItemCount($conn, $table_name) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/Dashboard.css">
-    <link rel="stylesheet" href="css/Ticket_style.css">
+    <link rel="stylesheet" href="css/DashboarD.css">
+    <link rel="stylesheet" href="css/Ticket_STyle.css">
     <title>Manage Location</title>
+    <style>
+    .modal-content{
+        width: 30%;
+    }
+    .notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
+    .btn-add, .btn-delete, .btn-edit {
+        padding: 10px 15px;
+        margin-right: 10px;
+        color: #5D9C59;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    .btn-add {
+        background-color: #DDF7E3;
+    }
+    .btn-edit {
+        background-color: #DDF7E3; /* Green color */
+    }
+    .btn-edit:hover{
+                background-color: #ddf7e3ac;
+            }
+            
+            .btn-add:hover{
+                background-color: #ddf7e3ac;
+            }
+
+
+.success-message {
+    color: #5D9C59;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.error-message {
+    color: #D8000C;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
+
+</style>
+
 </head>
 
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-<a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
-</a>
+<a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
     <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item active"><span class="icon-placeholder"></span>Device Location</a>
@@ -96,18 +210,21 @@ function getTotalItemCount($conn, $table_name) {
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
+    <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
+    </div>
     </div>
 </div>
 
@@ -120,63 +237,61 @@ function getTotalItemCount($conn, $table_name) {
     </div>
 </div>
 
-<div class="main-content">
+<div class="main-content" style="overflow: hidden; height:650px;">
+
     <div class="container">
-    
         <form action="crudLegends.php" method="post">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h2 style="color: #5D9C59;">Manage Location</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; ">
+                <h1 style="color: #5D9C59;">Manage Location</h1>
                 <div>
                     <input type="submit" name="delete_legend" value="Delete" class="btn-delete">
                 </div>
             </div>
             <div class="message-container">
-            <?php
-            if (!empty($successMessage)) {
-                echo '<div class="success-message">' . $successMessage . '</div>';
-            } elseif (!empty($errorMessage)) {
-                echo '<div class="error-message">' . $errorMessage . '</div>';
-            }
-            ?>
-        </div>
-
-            <?php
-            if ($result->num_rows > 0) {
-
-                echo '<div class="table-container">'; // Add a container div for the table
-
-                echo '<table>';
-                echo '<thead>';
-                echo '<tr>';
-                echo '<th></th>'; // Checkbox column
-                echo '<th>Location</th>';
-                echo '<th>Abbreviation</th>';
-                echo '<th>Action</th>'; // Edit button column
-                echo '</tr>';
-                echo '</thead>';
-                echo '<tbody>';
-
-                // Output data of each row
-                while($row = $result->fetch_assoc()) {
-                    echo '<tr>';
-                    echo '<td><input type="checkbox" name="delete_legend_id[]" value="' . $row["legends_id"] . '"></td>'; // Checkbox
-                    echo '<td>' . $row["legends_name"] . '</td>';
-                    echo '<td>' . $row["abv"] . '</td>';
-                    echo '<td><button type="button" onclick="showEditLegendModal(' . $row["legends_id"] . ', \'' . $row["legends_name"] . '\', \'' . $row["abv"] . '\')" class="btn-edit">Edit</button></td>';
-                    echo '</tr>';
+                <?php
+                if (!empty($successMessage)) {
+                    echo '<div class="success-message">' . $successMessage . '</div>';
+                } elseif (!empty($errorMessage)) {
+                    echo '<div class="error-message">' . $errorMessage . '</div>';
                 }
-                echo '</tbody>';
-                echo '</table>';
-                echo '</div>'; // Close the container div
-            } else {
-                echo "No legends found.";
-            }
-            $conn->close();
-            ?>
-        </form>
+                ?>
+            </div>
 
-        <!-- Add button at the bottom left -->
-        <button type="button" onclick="showAddLegendModal()" class="btn-add" style="margin-top: 20px;">Add</button>
+            <!-- Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th> <!-- Checkbox column -->
+                            <th>Location</th>
+                            <th>Abbreviation</th>
+                            <th>Action</th> <!-- Edit button column -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if ($result->num_rows > 0) {
+                            // Output data of each row
+                            while($row = $result->fetch_assoc()) {
+                                echo '<tr>';
+                                echo '<td><input type="checkbox" name="delete_legend_id[]" value="' . $row["legends_id"] . '"></td>'; // Checkbox
+                                echo '<td>' . $row["legends_name"] . '</td>';
+                                echo '<td>' . $row["abv"] . '</td>';
+                                echo '<td><button type="button" onclick="showEditLegendModal(' . $row["legends_id"] . ', \'' . $row["legends_name"] . '\', \'' . $row["abv"] . '\')" class="btn-edit">Edit</button></td>';
+                                echo '</tr>';
+                            }
+                        } else {
+                            echo '<tr><td colspan="4">No locations found.</td></tr>';
+                        }
+                        $conn->close();
+                        ?>
+                    </tbody>
+                </table>
+            </div> <!-- Close the table container -->
+
+            <!-- Add button at the bottom left -->
+            <button type="button" onclick="showAddLegendModal()" class="btn-add" style="margin-top: 20px;">Add</button>
+        </form>
     </div>
 </div>
 
@@ -266,60 +381,27 @@ function hideMessages() {
             }
         }
     }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
+
 </script>
 
-<!-- CSS for buttons (for illustration purposes, you can adjust as needed) -->
-<style>
-    .modal-content{
-        width: 30%;
-    }
-    .notification-badge {
-    background-color: red;
-    color: white;
-    padding: 4px 8px;
-    border-radius: 50%;
-    margin-left: 4px;
-}
-    .btn-add, .btn-delete, .btn-edit {
-        padding: 10px 15px;
-        margin-right: 10px;
-        color: #5D9C59;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    .btn-add {
-        background-color: #DDF7E3;
-    }
-    .btn-edit {
-        background-color: #DDF7E3; /* Green color */
-    }
-    .btn-edit:hover{
-                background-color: #ddf7e3ac;
-            }
-            
-            .btn-add:hover{
-                background-color: #ddf7e3ac;
-            }
-
-
-.success-message {
-    color: #5D9C59;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.error-message {
-    color: #D8000C;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-    
-</style>
 
 </body>
 </html>

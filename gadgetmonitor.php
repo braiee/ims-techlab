@@ -111,6 +111,11 @@ $result = $conn->query($sql);
     <title>Manage Gadget Monitor</title>
 
     <style>
+                th{
+            color: #5D9C59;
+            background-color: #f2f2f2;
+        }
+
         .table-container {
             max-height: 400px; /* Set a maximum height for the table container */
             overflow-y: auto; /* Enable vertical scrolling */
@@ -239,6 +244,69 @@ $result = $conn->query($sql);
         background-color: #e9ecef; /* Optional: to give a visual cue */
     }
 
+    .dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background-color: #C7E8CA;
+    color: #5D9C59;
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    text-align: center;
+    width: 100%;
+    margin-top: -10px;
+    margin-right: 10px;
+}
+
+.dropdown-btn:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+    transition: transform 0.2s;
+}
+
+.nav-links {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #C7E8CA;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.nav-links li {
+    margin: 0;
+    padding: 0;
+    width: 70%;
+}
+
+.nav-links a {
+    display: block;
+    color: #5D9C59;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: transform 0.2s;
+    width: 100%;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    transform: translateY(-5px); /* Slight lift effect on hover */
+}
+
+.show {
+    display: flex;
+}
+
     </style>
 </head>
 
@@ -279,93 +347,97 @@ $result = $conn->query($sql);
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
-        <!-- Navigation links -->
-        <ul class="nav-links">
+    <div class="dropdown">
+        <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+</button>
+        <ul class="nav-links dropdown-content">
             <!-- Display greeting message -->
             <?php if (isset($_SESSION["user_id"])): ?>
                 <li>
                     <a href="users.php">
-                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        Settings    
                     </a>
                 </li>
                 <li><a href="logout.php">Logout</a></li>
             <?php endif; ?>
         </ul>
     </div>
+
+    </div>
 </div>
 
 
-<div class="main-content">
+<div class="main-content" style="overflow: hidden; height:650px;">
     <div class="container">
-        <?php
-        if (!empty($successMessage)) {
-            echo '<script>showMessageModal("success", "' . $successMessage . '")</script>';
-        } elseif (!empty($errorMessage)) {
-            echo '<script>showMessageModal("error", "' . $errorMessage . '")</script>';
-        }
+    <?php
+if (!empty($successMessage)) {
+    echo '<script>showMessageModal("success", "' . $successMessage . '")</script>';
+} elseif (!empty($errorMessage)) {
+    echo '<script>showMessageModal("error", "' . $errorMessage . '")</script>';
+}
 
-        if ($result->num_rows > 0) {
-            echo '<form action="" method="post">';
-            echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
-            echo '<h2 style="color: #5D9C59;">Manage Gadget Monitor</h2>';
-            echo '<input type="submit" name="delete_gadget" value="Delete">';
-            echo '</div>';
+echo '<form action="" method="post">';
+echo '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">';
+echo '<h1 style="color: #5D9C59;">Manage Gadget Monitor</h1>';
+echo '<input type="submit" name="delete_gadget" value="Delete">';
+echo '</div>';
 
-            echo '<div class="table-container">'; // Add a container div for the table
+echo '<div class="table-container">'; // Add a container div for the table
 
-            echo '<table>';
-            
-            echo '<thead>';
-            echo '<tr>';
-            echo '<th></th>'; // Checkbox column
-            echo '<th>Item ID</th>';
+echo '<table>';
+echo '<thead>';
+echo '<tr>';
+echo '<th></th>'; // Checkbox column
+echo '<th>Asset ID</th>';
 
-            echo '<th>Item</th>';
-            echo '<th>Location</th>';
-            echo '<th>Category</th>';
-            echo '<th>Type</th>';
+echo '<th>Item</th>';
+echo '<th>Location</th>';
+echo '<th>Category</th>';
+echo '<th>Type</th>';
 
-            echo '<th>Status</th>';
-            echo '<th>Ref RNSS</th>'; // New column for actions
-            echo '<th>Owner</th>'; // New column for actions
+echo '<th>Status</th>';
+echo '<th>Ref RNSS</th>'; // New column for actions
+echo '<th>Owner</th>'; // New column for actions
 
-            echo '<th>Action</th>'; // New column for actions
-            echo '</tr>';
-            echo '</thead>';
-            echo '<tbody>';
+echo '<th>Action</th>'; // New column for actions
+echo '</tr>';
+echo '</thead>';
+echo '<tbody>';
 
-            // Output data of each row
-            while($row = $result->fetch_assoc()) {
-                echo '<tr>';
-                echo '<td><input type="checkbox" name="gadget_ids[]" value="' . $row["gadget_id"] . '"></td>'; // Checkbox
-                echo '<td>'. $row["unique_gadget_id"] . '</td>';
-                echo '<td>'. $row["gadget_name"] . '</td>';
-                echo '<td>' . $row["legends_name"] . '</td>';
-                echo '<td>' . $row["categories_name"] . '</td>';
-                echo '<td>' . $row["type"] . '</td>';
+// Output data of each row
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        echo '<tr>';
+        echo '<td><input type="checkbox" name="gadget_ids[]" value="' . $row["gadget_id"] . '"></td>'; // Checkbox
+        echo '<td>' . $row["unique_gadget_id"] . '</td>';
+        echo '<td>' . $row["gadget_name"] . '</td>';
+        echo '<td>' . $row["legends_name"] . '</td>';
+        echo '<td>' . $row["categories_name"] . '</td>';
+        echo '<td>' . $row["type"] . '</td>';
 
-                echo '<td>' . $row["status"] . '</td>'; // Display status
-                echo '<td>' . $row["ref_rnss"] . '</td>';
-                echo '<td>' . $row["owner"] . '</td>';
+        echo '<td>' . $row["status"] . '</td>'; // Display status
+        echo '<td>' . $row["ref_rnss"] . '</td>';
+        echo '<td>' . $row["owner"] . '</td>';
 
-                // Action buttons
-                echo '<td>';
-                echo '<button type="button" class="view-button" onclick=\'openViewModal(' . json_encode($row) . ')\'>View</button>';
-                echo '<button type="button" class="view-button edit-button" onclick=\'openEditModal(' . json_encode($row) . ')\'>Edit</button>';
-                echo '</td>';
-                echo '</tr>';
-            }
-            echo '</tbody>';
-            echo '</table>';
-            echo '</div>';
+        // Action buttons
+        echo '<td>';
+        echo '<button type="button" class="view-button" onclick=\'openViewModal(' . json_encode($row) . ')\'>View</button>';
+        echo '<button type="button" class="view-button edit-button" onclick=\'openEditModal(' . json_encode($row) . ')\'>Edit</button>';
+        echo '</td>';
+        echo '</tr>';
+    }
+} else {
+    echo '<tr><td colspan="10">No gadgets found.</td></tr>';
+}
+echo '</tbody>';
+echo '</table>';
+echo '</div>';
 
-            echo '</form>';
-        } else {
-            echo "No gadgets found.";
-        }
-        $conn->close();
-        ?>
-        <!-- Button to open modal -->
+echo '</form>';
+$conn->close();
+?>
+
+<!-- Button to open modal -->
         <button class="assign-button" onclick="openModal()">Add Gadget</button>
     </div>
 </div>
@@ -378,7 +450,7 @@ $result = $conn->query($sql);
         <div id="viewContent" class="view-content">
             <table>
                 <tr>
-                    <td><strong>ID:</strong></td>
+                    <td><strong>Asset ID:</strong></td>
                     <td id="gadgetId"></td>
                 </tr>
                 <tr>
@@ -523,9 +595,6 @@ $result = $conn->query($sql);
                 <label for="edit_status">Status:</label>
                 <select name="edit_status" id="edit_status">
                     <option value="Available">Available</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Approved">Approved</option>
-                    <option value="Returned">Returned</option>
                     <option value="Returned">Not Available</option>
 
                 </select><br>
@@ -635,7 +704,7 @@ function openViewModal(row) {
     var modal = document.getElementById("viewModal");
 
     // Fill in data in modal
-    document.getElementById("gadgetId").textContent = row.gadget_id;
+    document.getElementById("gadgetId").textContent = row.unique_gadget_id;
     document.getElementById("gadgetName").textContent = row.gadget_name;
     document.getElementById("gadgetCategory").textContent = row.categories_name;
     document.getElementById("gadgetType").textContent = row.type;
@@ -705,6 +774,25 @@ window.onclick = function(event) {
         }
     }
 }
+
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    const dropdownBtn = document.querySelector('.dropdown-btn');
+    const dropdownContent = document.querySelector('.dropdown-content');
+
+    dropdownBtn.addEventListener('click', () => {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if the user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (!event.target.matches('.dropdown-btn')) {
+            if (dropdownContent.classList.contains('show')) {
+                dropdownContent.classList.remove('show');
+            }
+        }
+    });
+});
 
 </script>
 
