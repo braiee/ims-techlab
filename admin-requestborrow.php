@@ -290,8 +290,8 @@ while ($row = $result->fetch_assoc()):
     <td><?php echo htmlspecialchars($row['item_name']); ?></td>
     <td><?php echo htmlspecialchars($row['category']); ?></td>
     <td><?php echo htmlspecialchars($row['status']); ?></td>
-    <td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
-    <td><?php echo htmlspecialchars($row['duration']); ?></td>
+    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
+    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
     <td>
       <?php if ($row['status'] === 'Pending'): ?>
         <form action="update_status.php" method="POST">

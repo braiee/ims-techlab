@@ -417,12 +417,13 @@ function fetchTableData(table, page) {
 function generateBorrowedItemsTable(data) {
     var tableContent = '<table><thead><tr><th>Item Name</th><th>Status</th><th>Username</th></tr></thead><tbody>';
     data.forEach(function(item) {
-        tableContent += '<tr><td>' + item.item_name + '</td><td>' + item.status + '</td><td>' + item.username + '</td></tr>';
+        if (item.status !== '') {
+            tableContent += '<tr><td>' + item.item_name + '</td><td>' + item.status + '</td><td>' + item.username + '</td></tr>';
+        }
     });
     tableContent += '</tbody></table>';
     return tableContent;
 }
-
 
 
 function generateDeviceMonitorsTable(data) {

@@ -293,8 +293,8 @@ th{
             <td><?php echo htmlspecialchars($row['item_name']); ?></td>
             <td><?php echo htmlspecialchars($row['category']); ?></td>
             <td><?php echo htmlspecialchars($row['status']); ?></td>
-            <td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
-            <td><?php echo htmlspecialchars($row['duration']); ?></td>
+            <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
+            <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
             <td>
                 <form action="record_returned_item.php" method="POST">
                     <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
@@ -338,7 +338,7 @@ th{
                     <td><?php echo htmlspecialchars($row_history['item_name']); ?></td>
                     <td><?php echo htmlspecialchars($row_history['username']); ?></td>
                     <td><?php echo htmlspecialchars($row_history['received_by']); ?></td>
-                    <td><?php echo htmlspecialchars($row_history['received_date']); ?></td>
+                    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row_history['received_date']))); ?></td>
                 </tr>
             <?php endwhile; ?>
         <?php else: ?>
