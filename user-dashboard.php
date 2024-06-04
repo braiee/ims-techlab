@@ -9,11 +9,46 @@ $items_per_page = 20; // Number of items per page
 
 // Get the current page or set default to 1
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$offset = ($current_page - 1) * $items_per_page;
 
 // Check if filter is applied
 if (isset($_POST['filter'])) {
     $filter = $_POST['filter'];
+    // Reset current page to 1 whenever a filter is applied
+    $current_page = 1;
+}
+
+$offset = ($current_page - 1) * $items_per_page;
+
+function getBorrowedItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status IN ('Approved', 'Not Approved')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
+}
+
+function getPendingItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status = 'Pending'";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
 }
 
 // Check if search term is provided
@@ -21,67 +56,92 @@ if (isset($_POST['search'])) {
     $search = $_POST['search'];
 }
 
-// Base SQL query to fetch combined product data with filter and search
-$sql = "SELECT source, name, category, descriptions, color, imei, sn, custodian, status
+$sql = "SELECT combined.source, combined.name, combined.category, combined.descriptions, combined.color, combined.imei, combined.sn, combined.owner, combined.uniqueid, 
+        IFNULL((
+            SELECT MAX(status) 
+            FROM borrowed_items 
+            WHERE borrowed_items.item_id = combined.id
+        ), 'Available') AS status,
+        categories.categories_name
         FROM (
-            SELECT 'Vendor Owned' AS source, item_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, contact_person AS custodian, 
-                   (SELECT status FROM borrowed_items WHERE vendor_owned.vendor_id = borrowed_items.user_id LIMIT 1) AS status
-            FROM vendor_owned
-            UNION ALL
-            SELECT 'Office Supplies', office_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, emei AS imei, sn, custodian, 
-                   (SELECT status FROM borrowed_items WHERE office_supplies.office_id = borrowed_items.user_id LIMIT 1) AS status
+            SELECT office_id AS id, 'Office Supplies' AS source, office_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, custodian AS owner, unique_legends_id AS uniqueid
             FROM office_supplies
             UNION ALL
-            SELECT 'Gadget Monitor', gadget_name AS name, categories_id AS category, NULL AS descriptions, color, emei AS imei, sn, custodian,
-                   (SELECT status FROM borrowed_items WHERE gadget_monitor.gadget_id = borrowed_items.user_id LIMIT 1) AS status
+            SELECT gadget_id AS id, 'Gadget and Devices' AS source, gadget_name AS name, categories_id AS category, NULL AS descriptions, color, emei AS imei, sn, custodian AS owner, unique_gadget_id AS uniqueid
             FROM gadget_monitor
             UNION ALL
-            SELECT 'Creative Tools', creative_name AS name, categories_id AS category, descriptions, NULL AS color, emei AS imei, sn, custodian,
-                   (SELECT status FROM borrowed_items WHERE creative_tools.creative_id = borrowed_items.user_id LIMIT 1) AS status
+            SELECT creative_id AS id, 'Creative Tools' AS source, creative_name AS name, categories_id AS category, descriptions, NULL AS color, emei AS imei, sn, custodian AS owner, unique_creative_id AS uniqueid
             FROM creative_tools
-        ) AS combined";
+            UNION ALL
+            SELECT vendor_id AS id, 'Vendor Owned' AS source, item_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, contact_person AS owner, unique_vendor_id AS uniqueid
+            FROM vendor_owned
+        ) AS combined
+        LEFT JOIN categories ON combined.category = categories.categories_id";
 
 // Add filter condition
+$conditions = [];
+$params = [];
+$types = "";
+
 if ($filter != "") {
-    $sql .= " WHERE source = ?";
+    $conditions[] = "combined.source = ?";
+    $params[] = $filter;
+    $types .= "s";
 }
 
 // Add search condition
 if ($search != "") {
-    if ($filter != "") {
-        $sql .= " AND (name LIKE ? OR category LIKE ? OR descriptions LIKE ? OR color LIKE ? OR imei LIKE ? OR sn LIKE ? OR custodian LIKE ? OR status LIKE ?)";
-    } else {
-        $sql .= " WHERE (name LIKE ? OR category LIKE ? OR descriptions LIKE ? OR color LIKE ? OR imei LIKE ? OR sn LIKE ? OR custodian LIKE ? OR status LIKE ?)";
+    $search_condition = "(combined.name LIKE ? OR combined.descriptions LIKE ? OR combined.color LIKE ? OR combined.imei LIKE ? OR combined.sn LIKE ? OR combined.owner LIKE ? OR combined.uniqueid LIKE ? OR categories.categories_name LIKE ?)";
+    $conditions[] = $search_condition;
+    $search_param = "%$search%";
+    $params = array_merge($params, array_fill(0, 8, $search_param));
+    $types .= str_repeat("s", 8);
+}
+
+if (count($conditions) > 0) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+
+// Prepare the statement
+$stmt = $conn->prepare($sql);
+
+if (!$stmt) {
+    die("Error preparing statement: " . $conn->error);
+}
+
+// Bind parameters
+if ($types != "") {
+    $bindResult = $stmt->bind_param($types, ...$params);
+    if (!$bindResult) {
+        die("Error binding parameters: " . $stmt->error);
     }
 }
 
-// Prepare and execute the statement
-$stmt = $conn->prepare($sql);
-if ($filter != "" && $search != "") {
-    $search_param = "%$search%";
-    $stmt->bind_param('sssssssss', $filter, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param);
-} elseif ($filter != "" && $search == "") {
-    $stmt->bind_param('s', $filter);
-} elseif ($filter == "" && $search != "") {
-    $search_param = "%$search%";
-    $stmt->bind_param('ssssssss', $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param);
+// Execute the statement
+$executeResult = $stmt->execute();
+if (!$executeResult) {
+    die("Error executing statement: " . $stmt->error);
 }
-$stmt->execute();
+
+// Get result
 $result = $stmt->get_result();
+
+if (!$result) {
+    die("Invalid query: " . $conn->error);
+}
+
 $total_items = $result->num_rows;
 
 // Add LIMIT clause for pagination
 $sql .= " LIMIT ?, ?";
+$offset_params = array_merge($params, [$offset, $items_per_page]);
+$offset_types = $types . "ii";
+
+// Prepare the statement with LIMIT
 $stmt = $conn->prepare($sql);
-if ($filter != "" && $search != "") {
-    $stmt->bind_param('ssssssssii', $filter, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $items_per_page);
-} elseif ($filter != "" && $search == "") {
-    $stmt->bind_param('sii', $filter, $offset, $items_per_page);
-} elseif ($filter == "" && $search != "") {
-    $stmt->bind_param('sssssssii', $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $items_per_page);
-} else {
-    $stmt->bind_param('ii', $offset, $items_per_page);
-}
+
+// Bind parameters including LIMIT
+$stmt->bind_param($offset_types, ...$offset_params);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -89,11 +149,7 @@ if (!$result) {
     die("Invalid query: " . $conn->error);
 }
 
-// Calculate totals
-$total_office_supplies = $conn->query("SELECT COUNT(*) FROM office_supplies")->fetch_row()[0];
-$total_creative_tools = $conn->query("SELECT COUNT(*) FROM creative_tools")->fetch_row()[0];
-$total_vendor_owned = $conn->query("SELECT COUNT(*) FROM vendor_owned")->fetch_row()[0];
-$total_gadget_monitor = $conn->query("SELECT COUNT(*) FROM gadget_monitor")->fetch_row()[0];
+
 ?>
 
 <!DOCTYPE html>
@@ -106,228 +162,400 @@ $total_gadget_monitor = $conn->query("SELECT COUNT(*) FROM gadget_monitor")->fet
     <title>User Dashboard</title>
     <style>
 
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
+.notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
 }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
 
-.wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    margin-left: 200px;
-    margin-top: 100px;
-    margin-bottom: 10px;
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-left: 200px;
+            margin-top: 100px;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            width: 80%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #C7E8CA;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow-y: hidden;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .pagination li {
+            margin: 0 5px;
+        }
+
+        .pagination a {
+            text-decoration: none;
+            color: #555;
+            background-color: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+
+        .pagination a:hover {
+            background-color: #5D9C59;
+            color: #fff;
+        }
+
+        .pagination a.active {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+        }
+
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 150px;
+            margin-left: 30px;
+            height: 10px;
+        }
+
+        .card {
+            background-color: #DDF7E3;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            flex: 1 1 calc(50% - 20px);
+            max-width: calc(50% - 20px);
+            text-align: center;
+            pointer-events: none; /* Disable pointer events */
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                flex: 1 1 calc(100% - 20px);
+                max-width: calc(100% - 20px);
+            }
+        }
+
+        .search-filter-form {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-filter-form input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .search-filter-form button {
+            padding: 8px 12px;
+            background-color: #DDF7E3; /* Blue */
+            color: #5D9C59;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-filter-form button:hover {
+            background-color: #ddf7e3ac;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .filter-buttons button {
+            padding: 8px 12px;
+            background-color: #f0f0f0;
+            color: #555;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .filter-buttons button:hover {
+            background-color: #5D9C59;
+            color: #fff;
+        }
+
+        .filter-buttons .active {
+            background-color: #4CAF50;
+            color: white;
+            border: 1px solid #4CAF50;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            left: 0;
+            top: 0; 
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+padding-top: 60px;
 }
+.modal-content {
+        background-color: #fefefe;
+        margin: 5% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+    }
 
-.main-content {
-    width: 80%;
-    max-width: 1200px;
-    margin: 0 auto;
-    background-color: #C7E8CA;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow-y: hidden;
-}
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
 
-.table-container {
-    max-height: 400px;
-    overflow-y: auto;
-}
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
 
-.pagination {
-    display: flex;
-    justify-content: center;
-    list-style: none;
-    padding: 0;
-    margin-top: 20px; /* Adjust margin as needed */
-}
-
-.pagination li {
-    margin: 0 5px;
-}
-
-.pagination a {
-    text-decoration: none;
-    color: #555;
-    background-color: #f9f9f9;
-    padding: 8px 12px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-}
-
-.pagination a:hover {
-    background-color: #5D9C59;
-    color: #fff;
-}
-
-.pagination a.active {
-        background-color: #4CAF50;
+    .view-data-btn {
+        padding: 8px 12px;
+        background-color: #5D9C59;
         color: white;
-        border: 1px solid #4CAF50;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
     }
 
-.card-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-    margin-bottom: 150px;
-    margin-left: 30px;
-    height: 10px;
-
-}
-
-
-
-.card {
-    background-color: #DDF7E3;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    flex: 1 1 calc(50% - 20px);
-    max-width: calc(50% - 20px);
-    text-align: center;
-    pointer-events: none; /* Disable pointer events */
-
-}
-
-@media (max-width: 768px) {
-    .card {
-        flex: 1 1 calc(100% - 20px);
-        max-width: calc(100% - 20px);
+    .view-data-btn:hover {
+        background-color: #4CAF50;
     }
-}
 
-.search-filter-form {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px; /* Adjust margin as needed */
-}
-
-.search-filter-form input[type="text"],
-.search-filter-form select {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-right: 10px; /* Adjust margin between elements */
-}
-
-.search-filter-form button {
-    padding: 8px 12px;
-    background-color: #DDF7E3; /* Blue */
-    color: #5D9C59;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.search-filter-form button:hover {
-    background-color: #ddf7e3ac;
-}
-
-    </style>
+</style>
 </head>
 <body>
     <!-- Side Navigation -->
+    <!-- Side Navigation -->
     <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
+        <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
         <a href="user-dashboard.php" class="nav-item active"><span class="icon-placeholder"></span>Dashboard</a>
-        <a href="user-borrow.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-        <a href="user-pendingborrow.php" class="nav-item"><span class="icon-placeholder"></span>Pending</a>
-        <a href="user-resultborrow.php" class="nav-item"><span class="icon-placeholder"></span>Result</a>
-        <span class="non-clickable-item">Settings</span>
-        <a href="user-users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
-
+        <a href="user-borrow.php" class="nav-item "><span class="icon-placeholder"></span>My Request</a>
+        <a href="user-pendingborrow.php" class="nav-item ">
+        <span class="icon-placeholder"></span>Pending Requests
+    <?php echo getPendingItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
+<a href="user-resultborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>My Accountability
+    <?php echo getBorrowedItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
     </div>
+<!-- Header box container -->
+<div class="header-box">
+    <div class="header-box-content">
+        <!-- Navigation links -->
+        <ul class="nav-links">
+            <!-- Display greeting message -->
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="user-users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
+        </ul>
+    </div>
+</div>
 
-    <!-- Header box container -->
-    <div class="header-box">
-        <div class="header-box-content">
-            <!-- Navigation links -->
-            <ul class="nav-links">
-                <!-- Display greeting message -->
-                <?php
-                if (isset($_SESSION["user_id"])) {
-                    echo '<li>Hello, ' . htmlspecialchars($_SESSION["username"]) . '!</li>';
-                    echo '<li><a href="logout.php">Logout</a></li>';
-                }
-                ?>
-            </ul>
+
+
+<div class="wrapper">
+    <div class="main-content">
+        <!-- Search and Filter Form -->
+        <form method="POST" id="searchFilterForm" class="search-filter-form">
+        <input type="text" name="search" id="searchInput" placeholder="Search..." value="<?php echo htmlspecialchars($search); ?>">
+        <div class="filter-buttons">
+        <button type="button" onclick="applyFilter('Creative Tools')" class="<?php echo ($filter == 'Creative Tools') ? 'active' : ''; ?>">Creative Tools</button>
+    <button type="button" onclick="applyFilter('Office Supplies')" class="<?php echo ($filter == 'Office Supplies') ? 'active' : ''; ?>">Office Supplies</button>
+    <button type="button" onclick="applyFilter('Gadget and Devices')" class="<?php echo ($filter == 'Gadget and Devices') ? 'active' : ''; ?>">Gadget and Devices</button>
+    <button type="button" onclick="applyFilter('Vendor Owned')" class="<?php echo ($filter == 'Vendor Owned') ? 'active' : ''; ?>">Vendor Owned</button>
+    <button type="button" onclick="applyFilter('')" class="<?php echo ($filter == '') ? 'active' : ''; ?>">All</button>
+    <input type="hidden" name="filter" id="filterInput" value="<?php echo htmlspecialchars($filter); ?>">
+
         </div>
-    </div>
-
-    <div class="wrapper">
-        <div class="main-content">
-            <!-- Search and Filter Form -->
-            <form method="POST" class="search-filter-form">
-                <input type="text" name="search" placeholder="Search..." value="<?php echo htmlspecialchars($search); ?>">
-                <select name="filter">
-                    <option value="">Select Source</option>
-                    <option value="Vendor Owned" <?php if ($filter == 'Vendor Owned') echo 'selected'; ?>>Vendor Owned</option>
-                    <option value="Office Supplies" <?php if ($filter == 'Office Supplies') echo 'selected'; ?>>Office Supplies</option>
-                    <option value="Gadget Monitor" <?php if ($filter == 'Gadget Monitor') echo 'selected'; ?>>Gadget Monitor</option>
-                    <option value="Creative Tools" <?php if ($filter == 'Creative Tools') echo 'selected'; ?>>Creative Tools</option>
-                </select>
-                <button type="submit">Apply</button>
-            </form>
-            <div class="table-container">
-
-            <div class="table-container">
-                <table class="product-table">
-                    <thead>
-                        <tr>
-                            <th>Tagging</th>
-                            <th>Item</th>
-                            <th>Asset Number</th>
-                            <th>Status</th>
-                            <th>Owner</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        // Output data of each row
-                        $result->data_seek(0); // Reset result pointer
-                        while ($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>" . htmlspecialchars($row["source"]) . "</td>";
-                            echo "<td>" . htmlspecialchars($row["name"]) . "</td>";
-                            echo "<td>" . htmlspecialchars($row["category"]) . "</td>";
-                            echo "<td>" . htmlspecialchars($row["status"] ? $row["status"] : 'Available') . "</td>";
-                            echo "</tr>";
-                        }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-            </div>
-
-            <!-- Pagination Links -->
-            <ul class="pagination">
-                <?php
-                // Calculate the total number of pages
-                $total_pages = ceil($total_items / $items_per_page);
-
-                // Display pagination links
-                for ($page = 1; $page <= $total_pages; $page++) {
-                    if ($page == $current_page) {
-                        echo "<li><strong>$page</strong></li>";
-                    } else {
-                        echo "<li><a href=\"?page=$page\">$page</a></li>";
+        <button type="submit" style="display: none;">Submit</button>
+    </form>
+        <div class="table-container">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Tagging</th>
+                        <th>Asset Number</th>
+                        <th>Item Name</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    // Output data of each row
+                    $result->data_seek(0); // Reset result pointer
+                    while ($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($row["source"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($row["uniqueid"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($row["name"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($row["owner"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($row["status"] ? $row["status"] : 'Available') . "</td>";
+                        echo "<td><button class='view-data-btn' data-source='" . htmlspecialchars($row["source"]) . "' data-name='" . htmlspecialchars($row["name"]) . "' data-owner='" . htmlspecialchars($row["owner"]) . "' data-status='" . htmlspecialchars($row["status"]) . "' data-unique='" . htmlspecialchars($row["uniqueid"]) . "' data-category-name='" . htmlspecialchars($row["categories_name"]) . "'>View Data</button></td>";
+                        echo "</tr>";
                     }
-                }
-                ?>
-            </ul>
+                    ?>
+                </tbody>
+            </table>
         </div>
 
+        <!-- Pagination Links -->
+        <ul class="pagination">
+            <?php
+            // Calculate the total number of pages
+            $total_pages = ceil($total_items / $items_per_page);
+
+            // Display pagination links
+            for ($page = 1; $page <= $total_pages; $page++) {
+                if ($page == $current_page) {
+                    echo "<li><strong>$page</strong></li>";
+                } else {
+                    echo "<li><a href=\"?page=$page\">$page</a></li>";
+                }
+            }
+            // Add "Next" button
+            if ($current_page < $total_pages) {
+                $next_page = $current_page + 1;
+                echo "<li><a href=\"?page=$next_page\">&gt;</a></li>";
+            }
+            ?>
+        </ul>
     </div>
+</div>
+
+
+<!-- Modal -->
+<div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Item Details</h2>
+            <p id="item-details"></p>
+        </div>
+    </div>
+
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // Get all "View Data" buttons
+       // Get all "View Data" buttons
+var viewDataButtons = document.querySelectorAll(".view-data-btn");
+
+// When the user clicks on a "View Data" button, open the modal and display the data
+viewDataButtons.forEach(function(button) {
+    button.onclick = function() {
+        var itemDetails = `
+            <strong>Source:</strong> ${this.getAttribute("data-source")}<br>
+            <strong>Asset Number:</strong> ${this.getAttribute("data-unique")}<br>
+            <strong>Name:</strong> ${this.getAttribute("data-name")}<br>
+            <strong>Category:</strong> ${this.getAttribute("data-category-name")}<br>
+            <strong>Descriptions:</strong> ${this.getAttribute("data-descriptions")}<br>
+            <strong>Color:</strong> ${this.getAttribute("data-color")}<br>
+            <strong>IMEI:</strong> ${this.getAttribute("data-imei")}<br>
+            <strong>Serial Number:</strong> ${this.getAttribute("data-sn")}<br>
+            <strong>Owner:</strong> ${this.getAttribute("data-owner")}<br>
+            <strong>Status:</strong> ${this.getAttribute("data-status")}<br>
+        `;
+
+        document.getElementById("item-details").innerHTML = itemDetails;
+        modal.style.display = "block";
+    };
+});
+
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        };
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        };
+
+    // Get the search input field
+    var searchInput = document.getElementById("searchInput");
+    var typingTimer; // Timer identifier
+    var doneTypingInterval = 500; // Time in milliseconds (0.5 seconds)
+
+    // Add event listener for input change
+    searchInput.addEventListener("input", function() {
+        clearTimeout(typingTimer); // Clear the previous timer
+
+        typingTimer = setTimeout(function() {
+            // Submit the form after a brief delay when the user stops typing
+            searchInput.form.submit();
+        }, doneTypingInterval);
+    });
+
+    // Prevent form submission when pressing Enter key
+    searchInput.form.addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent the default form submission behavior
+    });
+
+
+    function applyFilter(filter) {
+        document.getElementById('filterInput').value = filter;
+        document.getElementById('searchFilterForm').submit();
+    }
+
+    </script>
 </body>
 </html>

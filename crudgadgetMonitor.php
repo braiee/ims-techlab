@@ -13,6 +13,9 @@ function generateUniqueGadgetID($conn, $gadget_id) {
             JOIN categories c ON gm.categories_id = c.categories_id
             WHERE gm.gadget_id = ?";
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("Preparation failed: (" . $conn->errno . ") " . $conn->error);
+    }
     $stmt->bind_param("i", $gadget_id);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -34,6 +37,9 @@ function generateUniqueGadgetID($conn, $gadget_id) {
             FROM gadget_monitor
             WHERE YEAR(date_added) = ?";
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("Preparation failed: (" . $conn->errno . ") " . $conn->error);
+    }
     $stmt->bind_param("s", $year);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -53,11 +59,12 @@ function generateUniqueGadgetID($conn, $gadget_id) {
     
     return $unique_gadget_id;
 }
+
 // Check if the form for adding gadget monitor is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     // Retrieve form data
-    // Adjust the form field names accordingly
     $gadget_name = $_POST['gadget_name'];
+    $type = $_POST['type'];
     $color = $_POST['color'];
     $emei = $_POST['emei'];
     $sn = $_POST['sn'];
@@ -69,14 +76,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
     $categories_id = $_POST['categories_id'];
     $legends_id = $_POST['legends_id'];
     $status = $_POST['status'];
-    $ref_rnss = $_POST['ref_rnss']; // Add this line to retrieve ref_rnss value
-    $owner = $_POST['owner']; // Add this line to retrieve owner value
+    $ref_rnss = $_POST['ref_rnss'];
+    $owner = $_POST['owner'];
 
     // Prepare SQL statement to insert gadget monitor into the database using prepared statement
-    $sql = "INSERT INTO gadget_monitor (gadget_name, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, categories_id, legends_id, status, ref_rnss, owner) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO gadget_monitor (gadget_name, type, color, emei, sn, custodian, rnss_acc, `condition`, purpose, remarks, categories_id, legends_id, status, ref_rnss, owner) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssssss", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner);
+    if (!$stmt) {
+        die("Preparation failed: (" . $conn->errno . ") " . $conn->error);
+    }
+    $stmt->bind_param("sssssssssssisss", $gadget_name, $type, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner);
     
     if ($stmt->execute()) {
         // Get the last inserted ID
@@ -86,6 +96,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_gadget'])) {
         // Update the unique_gadget_id for the inserted row
         $update_sql = "UPDATE gadget_monitor SET unique_gadget_id = ? WHERE gadget_id = ?";
         $update_stmt = $conn->prepare($update_sql);
+        if (!$update_stmt) {
+            die("Preparation failed: (" . $conn->errno . ") " . $conn->error);
+        }
         $update_stmt->bind_param("si", $unique_gadget_id, $last_insert_id);
         $update_stmt->execute();
         
@@ -102,6 +115,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
     // Get form data
     $gadget_id = $_POST['edit_gadget_id'];
     $gadget_name = $_POST['edit_gadget_name'];
+    $type = $_POST['edit_type'];
     $color = $_POST['edit_color'];
     $emei = $_POST['edit_emei'];
     $sn = $_POST['edit_sn'];
@@ -113,32 +127,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_gadget'])) {
     $categories_id = $_POST['edit_categories_id'];
     $legends_id = $_POST['edit_legends_id'];
     $status = $_POST['edit_status'];
-    $ref_rnss = $_POST['edit_ref_rnss']; // Add this line to retrieve ref_rnss value
-    $owner = $_POST['edit_owner']; // Add this line to retrieve owner value
+    $ref_rnss = $_POST['edit_ref_rnss'];
+    $owner = $_POST['edit_owner'];
 
     // Prepare SQL statement for updating data in gadget_monitor table using prepared statement
     $sql = "UPDATE gadget_monitor 
-            SET gadget_name=?, color=?, emei=?, sn=?, custodian=?, rnss_acc=?, `condition`=?, purpose=?, remarks=?, categories_id=?, legends_id=?, status=?, ref_rnss=?, owner=?
+            SET gadget_name=?, type=?, color=?, emei=?, sn=?, custodian=?, rnss_acc=?, `condition`=?, purpose=?, remarks=?, categories_id=?, legends_id=?, status=?, ref_rnss=?, owner=?
             WHERE gadget_id=?";
     $stmt = $conn->prepare($sql);
-    // Check if the prepared statement is successfully created
-    if ($stmt) {
-        // Bind parameters to the prepared statement
-        $stmt->bind_param("ssssssssssssssi", $gadget_name, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner, $gadget_id);
-        // Execute the prepared statement
-        if ($stmt->execute()) {
-            $successMessage = "Gadget monitor updated successfully.";
-        } else {
-            $errorMessage = "Error updating gadget monitor: " . $conn->error;
-        }
-        // Close the prepared statement
-        $stmt->close();
-    } else {
-        // Error in preparing the statement
-        $errorMessage = "Error preparing update statement: " . $conn->error;
+    if (!$stmt) {
+        die("Preparation failed: (" . $conn->errno . ") " . $conn->error);
     }
+    // Bind parameters to the prepared statement
+    $stmt->bind_param("sssssssssssisssi", $gadget_name, $type, $color, $emei, $sn, $custodian, $rnss_acc, $condition, $purpose, $remarks, $categories_id, $legends_id, $status, $ref_rnss, $owner, $gadget_id);
+    // Execute the prepared statement
+    if ($stmt->execute()) {
+        $successMessage = "Gadget monitor updated successfully.";
+    } else {
+        $errorMessage = "Error updating gadget monitor: " . $conn->error;
+    }
+    // Close the prepared statement
+    $stmt->close();
 }
-
 
 // Delete gadget monitors
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
@@ -165,8 +175,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_gadget'])) {
         $errorMessage = "No gadget monitors selected to delete.";
     }
 }
-
-
 
 // Redirect back to gadget_monitor.php with success or error message
 if (!empty($successMessage)) {

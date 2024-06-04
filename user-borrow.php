@@ -20,9 +20,39 @@ $result_gadget_monitor = $conn->query($sql_gadget_monitor);
 $sql_office_supplies = "SELECT * FROM office_supplies WHERE status = 'Available'";
 $result_office_supplies = $conn->query($sql_office_supplies);
 
-// Fetch available items from vendor_owned table
-$sql_vendor_owned = "SELECT * FROM vendor_owned WHERE status = 'Available'";
-$result_vendor_owned = $conn->query($sql_vendor_owned);
+
+function getBorrowedItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status IN ('Approved', 'Not Approved')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
+}
+function getPendingItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status = 'Pending'";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -32,31 +62,93 @@ $result_vendor_owned = $conn->query($sql_vendor_owned);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/user-css.css">
+<style>
+        input[type="date"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        width: 50%;
+        box-sizing: border-box; /* Ensure padding and border are included in width */
+    }
 
+.notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
+
+/* Modal content */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px; /* Adjust the maximum width as needed */
+    position: relative;
+}
+
+/* Close button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Warning text */
+.modal-content p {
+    margin-bottom: 20px;
+}
+
+</style>
     <title>Borrow Items</title>
 </head>
 <body>
-<div class="side-nav">
+    <!-- Side Navigation -->
+    <div class="side-nav">
         <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
         <a href="user-dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-        <a href="user-borrow.php" class="nav-item active"><span class="icon-placeholder"></span>Borrow</a>
-        <a href="user-pendingborrow.php" class="nav-item"><span class="icon-placeholder"></span>Pending</a>
-        <a href="user-resultborrow.php" class="nav-item"><span class="icon-placeholder"></span>Result</a>
-        <span class="non-clickable-item">Settings</span>
-        <a href="user-users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+        <a href="user-borrow.php" class="nav-item active"><span class="icon-placeholder"></span>My Request</a>
+        <a href="user-pendingborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>Pending Requests
+    <?php echo getPendingItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
+
+<a href="user-resultborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>My Accountability
+    <?php echo getBorrowedItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
+
+</div>
+<!-- Header box container -->
+<div class="header-box">
+    <div class="header-box-content">
+        <!-- Navigation links -->
+        <ul class="nav-links">
+            <!-- Display greeting message -->
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="user-users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
+        </ul>
     </div>
-    <div class="header-box">
-        <div class="header-box-content">
-            <ul class="nav-links">
-                <?php
-                if (isset($_SESSION["user_id"])) {
-                    echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                    echo '<li><a href="logout.php">Logout</a></li>';
-                }
-                ?>
-            </ul>
-        </div>
-    </div>
+</div>
+
     <div class="center-container">
 
     <div class="container">
@@ -103,33 +195,35 @@ $result_vendor_owned = $conn->query($sql_vendor_owned);
                 </tr>
             <?php endwhile; ?>
 
-            <?php while ($row = $result_vendor_owned->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['item_name']; ?></td>
-                    <td>Vendor Owned</td>
-                    <td><?php echo $row['status']; ?></td>
-                    <td><button class="borrow-button" onclick="openModal('Vendor Owned', '<?php echo $row['vendor_id']; ?>')">Borrow</button></td>
-                </tr>
-            <?php endwhile; ?>
         </tbody>
     </table>
 
     </div>
 </div>
 </div>
-
-        <!-- Modal -->
-        <div id="returnDateModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close" onclick="closeModal()">&times;</span>
-                <h2>Enter Return Date</h2>
-                <form id="returnDateForm">
-                    <label for="returnDate">Return Date:</label>
-                    <input type="datetime-local" id="returnDate" name="returnDate" required>
-                    <button type="submit" class="borrow-button">Borrow</button>
-                </form>
-            </div>
+<!-- Modal -->
+<div id="returnDateModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Enter Return Date</h2>
+        <div class="liability-message">
+            <p><strong>Please read and acknowledge the following:</strong></p>
+            <ul>
+                <li>By borrowing this item, you agree to be responsible for its safekeeping and timely return.</li>
+                <li>You will be held liable for any damages or loss incurred during the borrowing period.</li>
+                <li>Failure to return the item by the specified return date may result in penalties or fines.</li>
+                <li>Repeated failure to comply with borrowing policies may lead to suspension of borrowing privileges.</li>
+            </ul>
         </div>
+        <form id="returnDateForm">
+            <label for="returnDate">Return Date:</label>
+            <input type="date" id="returnDate" name="returnDate" required>
+            <br>
+            <button type="submit" class="borrow-button">Borrow</button>
+        </form>
+    </div>
+</div>
+
 
     <script>
         function openModal(category, itemId) {

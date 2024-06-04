@@ -22,22 +22,23 @@ switch ($table) {
         $count_sql = "SELECT COUNT(categories_id) AS total FROM categories";
         break;
 
-    case 'Supplies':
-        $sql = "SELECT os.supp_id, os.office_name, os.custodian, os.remarks, os.status, os.date_added, c.categories_name, l.legends_name 
-        FROM office_supplies os
-        LEFT JOIN categories c ON os.categories_id = c.categories_id
-        LEFT JOIN legends l ON os.legends_id = l.legends_id
-        LIMIT ?, ?";
-        $count_sql = "SELECT COUNT(supp_id) AS total FROM office_supplies";
-        break;
-
+        case 'Supplies':
+            $sql = "SELECT os.supp_id, os.unique_legends_id, os.office_name, os.custodian, os.remarks, os.status, os.date_added, c.categories_name, l.legends_name 
+                    FROM office_supplies os
+                    LEFT JOIN categories c ON os.categories_id = c.categories_id
+                    LEFT JOIN legends l ON os.legends_id = l.legends_id
+                    WHERE os.status <> 'deleted'
+                    LIMIT ?, ?";
+            $count_sql = "SELECT COUNT(supp_id) AS total FROM office_supplies WHERE status <> 'deleted'";
+            break;
+        
     case 'Location':
         $sql = "SELECT legends_name, abv FROM legends LIMIT ?, ?";
         $count_sql = "SELECT COUNT(legends_name) AS total FROM legends";
         break;
 
     case 'Creative Tools':
-        $sql = "SELECT ct.creative_id, ct.creative_name, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, c.categories_name, l.legends_name 
+        $sql = "SELECT ct.creative_id, ct.unique_creative_id, ct.qty, ct.creative_name, ct.emei, ct.sn, ct.custodian, ct.rnss_acc, ct.remarks, ct.descriptions, c.categories_name, l.legends_name 
         FROM creative_tools ct
         LEFT JOIN categories c ON ct.categories_id = c.categories_id
         LEFT JOIN legends l ON ct.legends_id = l.legends_id
@@ -45,8 +46,8 @@ switch ($table) {
         $count_sql = "SELECT COUNT(creative_id) AS total FROM creative_tools";
         break;
 
-    case 'Device Monitors':
-        $sql = "SELECT dm.gadget_id, dm.gadget_name, c.categories_name, dm.color, dm.emei, dm.sn, dm.custodian, dm.rnss_acc, dm.condition, dm.purpose, dm.remarks, l.legends_name, dm.status 
+    case 'Gadgets/Devices':
+        $sql = "SELECT dm.gadget_id, dm.gadget_name, dm.unique_gadget_id, c.categories_name, dm.ref_rnss, dm.owner, dm.color, dm.emei, dm.sn, dm.custodian, dm.rnss_acc, dm.condition, dm.purpose, dm.remarks, l.legends_name, dm.status 
         FROM gadget_monitor dm
         LEFT JOIN categories c ON dm.categories_id = c.categories_id
         LEFT JOIN legends l ON dm.legends_id = l.legends_id
@@ -63,7 +64,7 @@ switch ($table) {
             SELECT 'Office Supplies' AS tagging, office_name AS item, categories_id AS category, NULL AS descriptions, NULL AS color, custodian AS custodian, NULL AS remarks, NULL AS `condition`, NULL AS purpose, status, NULL AS legends_id
             FROM office_supplies
             UNION ALL
-            SELECT 'Gadget Monitor' AS tagging, gadget_name AS item, categories_id AS category, NULL AS descriptions, color AS color, emei AS imei, sn AS sn, custodian AS custodian, NULL AS rnss_acc, NULL AS remarks, `condition` AS `condition`, purpose AS purpose, status, legends_id
+            SELECT 'Gadgets/Devices' AS tagging, gadget_name AS item, categories_id AS category, NULL AS descriptions, color AS color, emei AS imei, sn AS sn, custodian AS custodian, NULL AS rnss_acc, NULL AS remarks, `condition` AS `condition`, purpose AS purpose, status, legends_id
             FROM gadget_monitor
             UNION ALL
             SELECT 'Creative Tools' AS tagging, creative_name AS item, categories_id AS category, descriptions AS descriptions, NULL AS color, emei AS imei, sn AS sn, custodian AS custodian, rnss_acc AS rnss_acc, remarks AS remarks, NULL AS `condition`, NULL AS purpose, status, legends_id
@@ -155,7 +156,7 @@ if (!empty($sql)) {
         case 'Location':
             $response = ['locations' => $data, 'total_pages' => $total_pages];
             break;
-        case 'Device Monitors':
+        case 'Gadgets/Devices':
             $response = ['gadget_monitor' => $data, 'total_pages' => $total_pages];
             break;
         case 'Product':

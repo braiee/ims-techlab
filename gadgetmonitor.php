@@ -11,6 +11,33 @@ if (!isset($_SESSION['user_id'])) {
 // Include database connection
 include 'db-connect.php';
 
+function getTotalItemCount($conn, $table_name) {
+    $sql = "SELECT COUNT(*) AS total FROM $table_name WHERE status = 'Pending'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+function getTotalFetchRequestCount($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE status = 'Returned'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+
 // Initialize message variables
 $successMessage = "";
 $errorMessage = "";
@@ -54,6 +81,7 @@ $sql = "SELECT
             gm.emei, 
             gm.sn,  
             gm.custodian, 
+            gm.type,
             gm.rnss_acc, 
             gm.`condition`, 
             gm.purpose, 
@@ -170,6 +198,13 @@ $result = $conn->query($sql);
             border-radius: 4px;
             cursor: pointer;
         }
+        .notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
 
         .assign-modal-content input[type="submit"]:hover {
             background-color: #4CAF50;
@@ -199,6 +234,10 @@ $result = $conn->query($sql);
         margin-bottom: 10px;
     }
 
+    .unclickable {
+        pointer-events: none;
+        background-color: #e9ecef; /* Optional: to give a visual cue */
+    }
 
     </style>
 </head>
@@ -206,41 +245,54 @@ $result = $conn->query($sql);
 <body>
     <!-- Side Navigation -->
     <div class="side-nav">
-    <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
-<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
+    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
-        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
-    <span class="non-clickable-item">Office</span>
+        <a href="admin-borrow.php" class="nav-item "><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>Approval
+    <?php
+    // Get the total count of items awaiting approval
+    $totalItems = getTotalItemCount($conn, 'borrowed_items');
+    // Display the total count with a notification badge
+    echo $totalItems;
+    ?>
+</a>       
+<a href="admin-fetchrequest.php" class="nav-item <?php echo ($_SERVER['PHP_SELF'] == '/admin-fetchrequest.php') ? 'active' : ''; ?>">
+    <span class="icon-placeholder"></span>Returned
+    <?php echo getTotalFetchRequestCount($conn); ?>
+</a>    <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="gadgetMonitor.php" class="nav-item active"><span class="icon-placeholder"></span>Device Monitors</a>
+    <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetMonitor.php" class="nav-item active"><span class="icon-placeholder"></span>Gadgets/Devices</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
         <span class="non-clickable-item">Settings</span>
-    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
+        
     <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
 
-    </div>
+</div>
 
-    <!-- Header box container -->
-    <div class="header-box">
-        <div class="header-box-content">
-            <!-- Navigation links -->
-            <ul class="nav-links">
-                <!-- Display greeting message -->
-                <?php
-                if (isset($_SESSION["user_id"])) {
-                    echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                    echo '<li><a href="logout.php">Logout</a></li>';
-                }
-                ?>
-            </ul>
-        </div>
+<!-- Header box container -->
+<div class="header-box">
+    <div class="header-box-content">
+        <!-- Navigation links -->
+        <ul class="nav-links">
+            <!-- Display greeting message -->
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
+        </ul>
     </div>
+</div>
 
 
 <div class="main-content">
@@ -270,8 +322,8 @@ $result = $conn->query($sql);
 
             echo '<th>Item</th>';
             echo '<th>Location</th>';
-
             echo '<th>Category</th>';
+            echo '<th>Type</th>';
 
             echo '<th>Status</th>';
             echo '<th>Ref RNSS</th>'; // New column for actions
@@ -290,6 +342,8 @@ $result = $conn->query($sql);
                 echo '<td>'. $row["gadget_name"] . '</td>';
                 echo '<td>' . $row["legends_name"] . '</td>';
                 echo '<td>' . $row["categories_name"] . '</td>';
+                echo '<td>' . $row["type"] . '</td>';
+
                 echo '<td>' . $row["status"] . '</td>'; // Display status
                 echo '<td>' . $row["ref_rnss"] . '</td>';
                 echo '<td>' . $row["owner"] . '</td>';
@@ -334,6 +388,10 @@ $result = $conn->query($sql);
                 <tr>
                     <td><strong>Category:</strong></td>
                     <td id="gadgetCategory"></td>
+                </tr>
+                <tr>
+                    <td><strong>Type:</strong></td>
+                    <td id="gadgetType"></td>
                 </tr>
                 <tr>
                     <td><strong>Color:</strong></td>
@@ -403,9 +461,8 @@ $result = $conn->query($sql);
                 <input type="text" id="edit_gadget_name" name="edit_gadget_name"><br>
                 
                 <label for="edit_categories_id">Category:</label>
-                <select name="edit_categories_id" id="edit_categories_id" disabled>
-                <option value="">Select Category</option>
-
+                <select class="unclickable" name="edit_categories_id" id="edit_categories_id" >
+                    <option value="">Select Category</option>
                     <?php
                     // Loop through categoriesResult to fetch and display categories options
                     while ($category = $categoriesResult->fetch_assoc()) {
@@ -415,9 +472,8 @@ $result = $conn->query($sql);
                 </select><br>
 
                 <label for="edit_legends_id">Location:</label>
-                <select name="edit_legends_id" id="edit_legends_id" disabled>
-                <option value="">Select Location</option>
-
+                <select name="edit_legends_id" id="edit_legends_id" class="unclickable">
+                    <option value="">Select Location</option>
                     <?php
                     // Loop through legendsResult to fetch and display legends options
                     while ($legend = $legendsResult->fetch_assoc()) {
@@ -427,6 +483,10 @@ $result = $conn->query($sql);
                 </select><br>
 
                 
+                <label for="edit_type">Type:</label>
+                <input type="text" id="edit_type" name="edit_type"><br>
+                
+
                 <label for="edit_color">Color:</label>
                 <input type="text" id="edit_color" name="edit_color"><br>
                 
@@ -515,6 +575,8 @@ $result = $conn->query($sql);
                 }
                 ?>
             </select>
+            <label for="color">Type:</label>
+            <input type="text" id="type" name="type" placeholder="Enter type" >
             <label for="color">Color:</label>
             <input type="text" id="color" name="color" placeholder="Enter color" >
             <label for="emei">IMEI:</label>
@@ -576,6 +638,7 @@ function openViewModal(row) {
     document.getElementById("gadgetId").textContent = row.gadget_id;
     document.getElementById("gadgetName").textContent = row.gadget_name;
     document.getElementById("gadgetCategory").textContent = row.categories_name;
+    document.getElementById("gadgetType").textContent = row.type;
     document.getElementById("gadgetColor").textContent = row.color;
     document.getElementById("gadgetEMEI").textContent = row.emei;
     document.getElementById("gadgetSN").textContent = row.sn;
@@ -607,6 +670,8 @@ function openEditModal(row) {
     document.getElementById("edit_gadget_name").value = row.gadget_name;
     document.getElementById("edit_categories_id").value = row.categories_id;
     document.getElementById("edit_legends_id").value = row.legends_id;
+    document.getElementById("edit_type").value = row.type;
+
     document.getElementById("edit_color").value = row.color;
     document.getElementById("edit_emei").value = row.emei;
     document.getElementById("edit_sn").value = row.sn;

@@ -22,6 +22,32 @@ unset($_SESSION['error_message']);
 // SQL query to fetch legends data
 $sql = "SELECT legends_id, legends_name, abv FROM legends";
 $result = $conn->query($sql);
+function getTotalFetchRequestCount($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE status = 'Returned'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+function getTotalItemCount($conn, $table_name) {
+    $sql = "SELECT COUNT(*) AS total FROM $table_name WHERE status = 'Pending'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
 
 ?>
 
@@ -45,16 +71,25 @@ $result = $conn->query($sql);
     <a href="legends.php" class="nav-item active"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
     <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
-        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
-    <span class="non-clickable-item">Office</span>
+    <a href="admin-requestborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>Approval
+    <?php
+    // Get the total count of items awaiting approval
+    $totalItems = getTotalItemCount($conn, 'borrowed_items');
+    // Display the total count with a notification badge
+    echo $totalItems;
+    ?>
+</a>       
+<a href="admin-fetchrequest.php" class="nav-item <?php echo ($_SERVER['PHP_SELF'] == '/admin-fetchrequest.php') ? 'active' : ''; ?>">
+    <span class="icon-placeholder"></span>Returned
+    <?php echo getTotalFetchRequestCount($conn); ?>
+</a>    <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
+    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadgets/Devices</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
     <span class="non-clickable-item">Settings</span>
-    <a href="users.php" class="nav-item "><span class="icon-placeholder"></span>Users</a>
     <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
 
 </div>
@@ -64,15 +99,18 @@ $result = $conn->query($sql);
         <!-- Navigation links -->
         <ul class="nav-links">
             <!-- Display greeting message -->
-            <?php
-            if (isset($_SESSION["user_id"])) {
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            }
-            ?>
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
         </ul>
     </div>
 </div>
+
 
 <!-- Success and Error Modal -->
 <div id="messageModal" class="modal">
@@ -235,6 +273,13 @@ function hideMessages() {
     .modal-content{
         width: 30%;
     }
+    .notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
     .btn-add, .btn-delete, .btn-edit {
         padding: 10px 15px;
         margin-right: 10px;

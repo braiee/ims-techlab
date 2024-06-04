@@ -1,8 +1,7 @@
 <?php
 
-date_default_timezone_set('Asia/Manila');
-
 session_start();
+include 'db-connect.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -11,15 +10,39 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Include database connection
-include 'db-connect.php';
+function getTotalItemCount($conn, $table_name) {
+    $sql = "SELECT COUNT(*) AS total FROM $table_name WHERE status = 'Pending'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+function getTotalFetchRequestCount($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE status = 'Returned'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+
 
 // Initialize message variables
 $successMessage = "";
 $errorMessage = "";
 
 // Fetch categories for dropdown
-$categoriesResult = $conn->query("SELECT categories_id, categories_name FROM categories");
 $legendsResult = $conn->query("SELECT legends_id, legends_name FROM legends");
 
 // Handle form submissions
@@ -35,10 +58,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $legends_id = $_POST['legends_id'];
         $project_lead = $_POST['project_lead']; // Add project_lead parameter
 
-        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, categories_id, legends_id, project_lead)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO vendor_owned (item_name, vendor_name, contact_person, purpose, turnover_tsto, return_vendor, legends_id, project_lead)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssiss", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor,  $legends_id, $project_lead);
+        $stmt->bind_param("ssssssis", $item_name, $vendor_name, $contact_person, $purpose, $turnover_tsto, $return_vendor,  $legends_id, $project_lead);
 
         if ($stmt->execute()) {
             $successMessage = "Vendor-owned item added successfully.";
@@ -73,6 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         $stmt->close();
     }
+
     
 // Delete vendor-owned items
 if (isset($_POST['delete_vendor_owned'])) {
@@ -163,7 +187,13 @@ input[type="date"] {
     font-size: 16px;
     /* Add any other styles as needed */
 }
-
+.notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
 .success-message {
     color: #5cb85c;
     padding: 10px;
@@ -180,39 +210,56 @@ input[type="date"] {
 <body>
 <!-- Side Navigation -->
 <div class="side-nav">
-<a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
-<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
+    <a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
+    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
-        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
-    <span class="non-clickable-item">Office</span>
-    <a href="officeSupplies.php" class="nav-item"><span class="icon-placeholder"></span>Supplies</a>
-    <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
+        <a href="admin-borrow.php" class="nav-item "><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item">
+    <span class="icon-placeholder"></span>Approval
+    <?php
+    // Get the total count of items awaiting approval
+    $totalItems = getTotalItemCount($conn, 'borrowed_items');
+    // Display the total count with a notification badge
+    echo $totalItems;
+    ?>
+</a>       
+<a href="admin-fetchrequest.php" class="nav-item <?php echo ($_SERVER['PHP_SELF'] == '/admin-fetchrequest.php') ? 'active' : ''; ?>">
+    <span class="icon-placeholder"></span>Returned
+    <?php echo getTotalFetchRequestCount($conn); ?>
+</a>    <span class="non-clickable-item">Office</span>
+    <a href="officeSupplies.php" class="nav-item "><span class="icon-placeholder"></span>Supplies</a>
+    <a href="creativeTools.php" class="nav-item "><span class="icon-placeholder"></span>Creative Tools</a>
+    <a href="gadgetMonitor.php" class="nav-item "><span class="icon-placeholder"></span>Gadgets/Devices</a>
     <span class="non-clickable-item">Vendors</span>
     <a href="vendor_owned.php" class="nav-item active"><span class="icon-placeholder"></span>Owned Gadgets</a>
         <span class="non-clickable-item">Settings</span>
-    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
     <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
+
 </div>
+
+
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
         <ul class="nav-links">
             <!-- Display greeting message -->
-            <?php
-            if (isset($_SESSION["user_id"])) {
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            }
-            ?>
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
         </ul>
     </div>
 </div>
+
+
 <div class="main-content">
     <div class="container">
         <?php

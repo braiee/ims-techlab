@@ -44,6 +44,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete'])) {
     }
 }
 
+function getTotalItemCount($conn, $table_name) {
+    $sql = "SELECT COUNT(*) AS total FROM $table_name WHERE status = 'Pending'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+function getTotalFetchRequestCount($conn) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE status = 'Returned'";
+    $result = $conn->query($sql);
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no items awaiting approval
+    }
+}
+
+
+
 // SQL query to fetch office supply data excluding those with status "Deleted"
 $sql = "SELECT unique_legends_id, office_id, office_name, custodian, remarks, status, categories_id, legends_id 
         FROM office_supplies
@@ -126,7 +154,13 @@ table {
     .edit-button:hover {
         background-color: #ddf7e3ac;
     }
-
+    .notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
 
 .success-message {
     color: #5D9C59;
@@ -140,43 +174,63 @@ table {
     border-radius: 5px;
 }
 
+.unclickable {
+        pointer-events: none;
+        background-color: #e9ecef; /* Optional: to give a visual cue */
+    }
+
 
 </style>
 
 <body>
 <!-- Side Navigation -->
-<div class="side-nav">
-<a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
-<a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
+    <!-- Side Navigation -->
+    <div class="side-nav">
+    <a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
+</a>
+    <a href="dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
     <a href="category.php" class="nav-item"><span class="icon-placeholder"></span>Categories</a>
     <a href="legends.php" class="nav-item"><span class="icon-placeholder"></span>Device Location</a>
     <span class="non-clickable-item">Borrow</span>
-    <a href="admin-borrow.php" class="nav-item"><span class="icon-placeholder"></span>Requests</a>
-        <a href="admin-requestborrow.php" class="nav-item"><span class="icon-placeholder"></span>Approval</a>
-        <a href="admin-fetchrequest.php" class="nav-item"><span class="icon-placeholder"></span>Returned</a>
-    <span class="non-clickable-item">Office</span>
+        <a href="admin-borrow.php" class="nav-item "><span class="icon-placeholder"></span>Requests</a>
+        <a href="admin-requestborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>Approval
+    <?php
+    // Get the total count of items awaiting approval
+    $totalItems = getTotalItemCount($conn, 'borrowed_items');
+    // Display the total count with a notification badge
+    echo $totalItems;
+    ?>
+</a>       
+
+<a href="admin-fetchrequest.php" class="nav-item <?php echo ($_SERVER['PHP_SELF'] == '/admin-fetchrequest.php') ? 'active' : ''; ?>">
+    <span class="icon-placeholder"></span>Returned
+    <?php echo getTotalFetchRequestCount($conn); ?>
+</a>    <span class="non-clickable-item">Office</span>
     <a href="officeSupplies.php" class="nav-item active"><span class="icon-placeholder"></span>Supplies</a>
     <a href="creativeTools.php" class="nav-item"><span class="icon-placeholder"></span>Creative Tools</a>
-    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Device Monitors</a>
+    <a href="gadgetMonitor.php" class="nav-item"><span class="icon-placeholder"></span>Gadgets/Devices</a>
     <span class="non-clickable-item">Vendors</span>
-    <a href="vendor_owned.php" class="nav-item "><span class="icon-placeholder"></span>Owned Gadgets</a>
+    <a href="vendor_owned.php" class="nav-item"><span class="icon-placeholder"></span>Owned Gadgets</a>
         <span class="non-clickable-item">Settings</span>
-    <a href="users.php" class="nav-item"><span class="icon-placeholder"></span>Users</a>
     <a href="deleted_items.php" class="nav-item"><span class="icon-placeholder"></span>Bin</a>
 
 </div>
+
 <!-- Header box container -->
 <div class="header-box">
     <div class="header-box-content">
         <!-- Navigation links -->
         <ul class="nav-links">
             <!-- Display greeting message -->
-            <?php
-            if (isset($_SESSION["user_id"])) {
-                echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                echo '<li><a href="logout.php">Logout</a></li>';
-            }
-            ?>
+            <?php if (isset($_SESSION["user_id"])): ?>
+                <li>
+                    <a href="users.php">
+                        Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                    </a>
+                </li>
+                <li><a href="logout.php">Logout</a></li>
+            <?php endif; ?>
         </ul>
     </div>
 </div>
@@ -283,7 +337,7 @@ table {
                 }
                 ?>
             </select>
-            <label for="legends_id">Legend:</label>
+            <label for="legends_id">Location:</label>
             <select id="legends_id" name="legends_id">
                 <?php
                 // Fetch and populate legends from the database
@@ -317,16 +371,16 @@ table {
             <input type="hidden" id="edit_office_id" name="edit_office_id">
 
             <label for="edit_office_name">Office Supply Name:</label>
-            <input type="text" id="edit_office_name" name="edit_office_name" placeholder="Enter office supply name" required><br>
+            <input type="text" id="edit_office_name" name="edit_office_name" placeholder="Enter office supply name" ><br>
 
             <label for="edit_custodian">Custodian:</label>
-            <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" required><br>
+            <input type="text" id="edit_custodian" name="edit_custodian" placeholder="Enter custodian" ><br>
 
             <label for="edit_remarks">Remarks:</label><br>
             <input type="text" id="edit_remarks" name="edit_remarks" placeholder="Enter remarks"><br>
 
-            <label for="edit_categories_id" >Category:</label>
-            <select id="edit_categories_id" name="edit_categories_id" disabled>
+            <label for="edit_categories_id">Category:</label>
+                <select class="unclickable" name="edit_categories_id" id="edit_categories_id" >
                 <?php
                 // Fetch and populate categories from the database
                 $categoriesResult->data_seek(0); // Reset pointer to the beginning
@@ -337,7 +391,7 @@ table {
             </select><br>
 
             <label for="edit_legends_id">Location:</label>
-            <select id="edit_legends_id" name="edit_legends_id" disabled>
+                <select name="edit_legends_id" id="edit_legends_id" class="unclickable">
                 <?php
                 // Fetch and populate legends from the database
                 $legendsResult->data_seek(0); // Reset pointer to the beginning

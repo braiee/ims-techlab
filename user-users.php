@@ -22,7 +22,42 @@ $user = $result->fetch_assoc();
 // Initialize message variables
 $successMessage = isset($_GET['successMessage']) ? $_GET['successMessage'] : "";
 $errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
+function getPendingItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status = 'Pending'";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
+}
+
+function getBorrowedItemCount($conn, $user_id) {
+    $sql = "SELECT COUNT(*) AS total FROM borrowed_items WHERE user_id = ? AND status IN ('Approved', 'Not Approved')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $total = $row['total'];
+
+    if ($total > 0) {
+        return '<span class="notification-badge">' . $total . '</span>';
+    } else {
+        return ''; // Return an empty string if there are no pending requests
+    }
+}
+
+
+
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,6 +69,13 @@ $errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
     <link rel="stylesheet" href="css/user-css.css">
 
     <style>
+.notification-badge {
+    background-color: red;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+}
 .container input[type="text"],
 .container input[type="password"],
 .container button[type="submit"] {
@@ -69,30 +111,38 @@ $errorMessage = isset($_GET['errorMessage']) ? $_GET['errorMessage'] : "";
 </head>
 <body>
 
-        <!-- Side Navigation -->
-        <div class="side-nav">
-        <a href="#" class="logo-link">        <img src="assets/img/techno.png" alt="Logo" class="logo">
-</a>
+    <!-- Side Navigation -->
+    <!-- Side Navigation -->
+    <div class="side-nav">
+        <a href="#" class="logo-link"><img src="assets/img/techno.png" alt="Logo" class="logo"></a>
         <a href="user-dashboard.php" class="nav-item "><span class="icon-placeholder"></span>Dashboard</a>
-        <a href="user-borrow.php" class="nav-item "><span class="icon-placeholder"></span>Borrow</a>
-        <a href="user-pendingborrow.php" class="nav-item"><span class="icon-placeholder"></span>Pending</a>
-        <a href="user-resultborrow.php" class="nav-item"><span class="icon-placeholder"></span>Result</a>
-        <span class="non-clickable-item">Settings</span>
-        <a href="user-users.php" class="nav-item active"><span class="icon-placeholder"></span>Users</a>
-    </div>
+        <a href="user-borrow.php" class="nav-item "><span class="icon-placeholder"></span>My Request</a>
+        <a href="user-pendingborrow.php" class="nav-item ">
+    <span class="icon-placeholder"></span>Pending Requests
+    <?php echo getPendingItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
 
-    <!-- Header box container -->
-    <div class="header-box">
+<a href="user-resultborrow.php" class="nav-item  ">
+    <span class="icon-placeholder"></span>My Accountability
+    <?php echo getBorrowedItemCount($conn, $_SESSION["user_id"]); ?>
+</a>
+
+</div>
+<!-- Header box container -->
+<div class="header-box">
         <div class="header-box-content">
             <!-- Navigation links -->
             <ul class="nav-links">
                 <!-- Display greeting message -->
-                <?php
-                if (isset($_SESSION["user_id"])) {
-                    echo '<li>Hello, ' . $_SESSION["username"] . '!</li>';
-                    echo '<li><a href="logout.php">Logout</a></li>';
-                }
-                ?>
+                <?php if (isset($_SESSION["user_id"])): ?>
+                    <li>
+                        <a href="user-users.php">
+                            Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
+                        </a>
+                    </li>
+                    <li><a href="logout.php">Logout</a></li>
+                    <!-- Display notification badge -->
+                <?php endif; ?>
             </ul>
         </div>
     </div>
