@@ -1,52 +1,53 @@
 <?php
 session_start();
-include 'db-connect.php';
+include 'db-connect.php'; // Include your database connection script
 
-// Check if user is logged in
-if (!isset($_SESSION["user_id"])) {
-    header("Location: login.php");
-    exit();
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["borrow_id"])) {
-    $borrow_id = $_POST["borrow_id"];
+// Check if borrow_id is set in the POST request
+if (isset($_POST['borrow_id'])) {
+    $borrow_id = $_POST['borrow_id'];
     
-    // Check if the borrow request belongs to the logged-in user
-    $user_id = $_SESSION["user_id"];
-    $check_sql = "SELECT * FROM borrowed_items WHERE borrow_id = ? AND user_id = ?";
-    $check_stmt = $conn->prepare($check_sql);
-
-    // Check if the statement was prepared successfully
-    if ($check_stmt === false) {
-        die('Prepare failed: ' . htmlspecialchars($conn->error));
-    }
-
-    $check_stmt->bind_param("is", $borrow_id, $user_id);
-    $check_stmt->execute();
-    $check_result = $check_stmt->get_result();
+    // Update the status of items to 'Available'
+    $update_items_sql = "UPDATE creative_tools SET status = 'Available' WHERE creative_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+    $stmt_items = $conn->prepare($update_items_sql);
+    $stmt_items->bind_param("i", $borrow_id);
+    $stmt_items->execute();
+    $stmt_items->close();
     
-    if ($check_result->num_rows > 0) {
-        // Delete the request
-        $delete_sql = "DELETE FROM borrowed_items WHERE borrow_id = ?";
-        $delete_stmt = $conn->prepare($delete_sql);
+    $update_items_sql = "UPDATE gadget_monitor SET status = 'Available' WHERE gadget_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+    $stmt_items = $conn->prepare($update_items_sql);
+    $stmt_items->bind_param("i", $borrow_id);
+    $stmt_items->execute();
+    $stmt_items->close();
 
-        // Check if the statement was prepared successfully
-        if ($delete_stmt === false) {
-            die('Prepare failed: ' . htmlspecialchars($conn->error));
-        }
+            
+    $update_items_sql = "UPDATE office_supplies SET status = 'Available' WHERE office_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+    $stmt_items = $conn->prepare($update_items_sql);
+    $stmt_items->bind_param("i", $borrow_id);
+    $stmt_items->execute();
+    $stmt_items->close();
 
-        $delete_stmt->bind_param("i", $borrow_id);
-        
-        if ($delete_stmt->execute()) {
-            header("Location: user-resultborrow.php");
-            exit();
-        } else {
-            echo "Error deleting request: " . htmlspecialchars($delete_stmt->error);
-        }
+            
+    $update_items_sql = "UPDATE vendor_owned SET status = 'Available' WHERE vendor_id IN (SELECT item_id FROM borrowed_items WHERE borrow_id = ?)";
+    $stmt_items = $conn->prepare($update_items_sql);
+    $stmt_items->bind_param("i", $borrow_id);
+    $stmt_items->execute();
+    $stmt_items->close();
+
+    // Update the borrow request status to 'Received'
+    $update_sql = "UPDATE borrowed_items SET status = 'Available' WHERE borrow_id = ?";
+    $stmt = $conn->prepare($update_sql);
+    $stmt->bind_param("i", $borrow_id);
+    
+    if ($stmt->execute()) {
+        // Redirect back to the previous page
+        header("Location: " . $_SERVER['HTTP_REFERER']);
+        exit(); // Exit the script
     } else {
-        echo "You are not authorized to delete this request.";
+        // Handle the update failure
+        echo "Error updating status: " . $conn->error;
     }
 } else {
-    echo "Invalid request";
+    // Handle the case when borrow_id is not provided
+    echo "Error: Missing required parameter.";
 }
 ?>

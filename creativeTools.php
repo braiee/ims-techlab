@@ -660,7 +660,7 @@ echo '</form>';
                     <label for="edit_status">Status:</label>
                 <select name="edit_status" id="edit_status">
                     <option value="Available">Available</option>
-                    <option value="Returned">Returned</option>
+                    <option value="Returned">Not Available</option>
                 </select><br>
 
 

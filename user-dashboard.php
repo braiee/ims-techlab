@@ -56,27 +56,78 @@ if (isset($_POST['search'])) {
     $search = $_POST['search'];
 }
 
-$sql = "SELECT combined.source, combined.name, combined.category, combined.descriptions, combined.color, combined.imei, combined.sn, combined.owner, combined.uniqueid, 
-        IFNULL((
-            SELECT MAX(status) 
-            FROM borrowed_items 
-            WHERE borrowed_items.item_id = combined.id
-        ), 'Available') AS status,
-        categories.categories_name
-        FROM (
-            SELECT office_id AS id, 'Office Supplies' AS source, office_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, custodian AS owner, unique_legends_id AS uniqueid
-            FROM office_supplies
-            UNION ALL
-            SELECT gadget_id AS id, 'Gadget and Devices' AS source, gadget_name AS name, categories_id AS category, NULL AS descriptions, color, emei AS imei, sn, custodian AS owner, unique_gadget_id AS uniqueid
-            FROM gadget_monitor
-            UNION ALL
-            SELECT creative_id AS id, 'Creative Tools' AS source, creative_name AS name, categories_id AS category, descriptions, NULL AS color, emei AS imei, sn, custodian AS owner, unique_creative_id AS uniqueid
-            FROM creative_tools
-            UNION ALL
-            SELECT vendor_id AS id, 'Vendor Owned' AS source, item_name AS name, categories_id AS category, NULL AS descriptions, NULL AS color, NULL AS imei, NULL AS sn, contact_person AS owner, unique_vendor_id AS uniqueid
-            FROM vendor_owned
-        ) AS combined
-        LEFT JOIN categories ON combined.category = categories.categories_id";
+$sql = "SELECT 
+    combined.source, 
+    combined.name, 
+    combined.category, 
+    combined.descriptions, 
+    combined.color, 
+    combined.imei, 
+    combined.sn, 
+    combined.owner, 
+    combined.uniqueid, 
+    combined.status, 
+    categories.categories_name
+FROM (
+    SELECT 
+        office_id AS id, 
+        'Office Supplies' AS source, 
+        office_name AS name, 
+        categories_id AS category, 
+        NULL AS descriptions, 
+        NULL AS color, 
+        NULL AS imei,
+        status, 
+        NULL AS sn, 
+        custodian AS owner, 
+        unique_legends_id AS uniqueid
+    FROM office_supplies
+    UNION ALL
+    SELECT 
+        gadget_id AS id, 
+        'Gadget and Devices' AS source, 
+        gadget_name AS name, 
+        categories_id AS category, 
+        NULL AS descriptions, 
+        status,
+        color, 
+        emei AS imei, 
+        sn, 
+        custodian AS owner, 
+        unique_gadget_id AS uniqueid
+    FROM gadget_monitor
+    UNION ALL
+    SELECT 
+        creative_id AS id, 
+        'Creative Tools' AS source, 
+        creative_name AS name, 
+        categories_id AS category, 
+        descriptions, 
+        NULL AS color, 
+        status,
+        emei AS imei, 
+        sn, 
+        custodian AS owner, 
+        unique_creative_id AS uniqueid
+    FROM creative_tools
+    UNION ALL
+    SELECT 
+        vendor_id AS id, 
+        'Vendor Owned' AS source, 
+        item_name AS name, 
+        categories_id AS category, 
+        NULL AS descriptions, 
+        NULL AS color, 
+        status,
+        NULL AS imei, 
+        NULL AS sn, 
+        contact_person AS owner, 
+        unique_vendor_id AS uniqueid
+    FROM vendor_owned
+) AS combined
+LEFT JOIN borrowed_items ON combined.id = borrowed_items.item_id
+LEFT JOIN categories ON combined.category = categories.categories_id
+WHERE combined.status != 'deleted'";
 
 // Add filter condition
 $conditions = [];
@@ -91,7 +142,7 @@ if ($filter != "") {
 
 // Add search condition
 if ($search != "") {
-    $search_condition = "(combined.name LIKE ? OR combined.descriptions LIKE ? OR combined.color LIKE ? OR combined.imei LIKE ? OR combined.sn LIKE ? OR combined.owner LIKE ? OR combined.uniqueid LIKE ? OR categories.categories_name LIKE ?)";
+    $search_condition = "(combined.name LIKE ? OR combined.descriptions LIKE ? OR combined.color LIKE ? OR combined.status LIKE ? OR combined.imei LIKE ? OR combined.sn LIKE ? OR combined.owner LIKE ? OR combined.uniqueid LIKE ? OR categories.categories_name LIKE ?)";
     $conditions[] = $search_condition;
     $search_param = "%$search%";
     $params = array_merge($params, array_fill(0, 8, $search_param));

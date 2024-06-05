@@ -237,7 +237,7 @@ $result = $stmt->get_result();
                         <th>Category</th>
                         <th>Status</th>
                         <th>Borrow Date</th>
-                        <th>Duration</th>
+                        <th>Return Date</th>
                         <th>Username</th> <!-- Changed from User ID to Username -->
                         <th>Actions</th>
                     </tr>
@@ -248,8 +248,8 @@ $result = $stmt->get_result();
                         <td><?php echo htmlspecialchars($row['item_name']); ?></td>
 <td><?php echo htmlspecialchars($row['category']); ?></td>
 <td><?php echo htmlspecialchars($row['status']); ?></td>
-<td><?php echo htmlspecialchars($row['borrow_date']); ?></td>
-<td><?php echo htmlspecialchars($row['duration']); ?></td>
+<td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
+<td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
 <td><?php echo htmlspecialchars($row['username']); ?></td> <!-- Displaying the username -->
 <td>
     <input type="checkbox" name="borrow_ids[]" value="<?php echo $row['borrow_id']; ?>">

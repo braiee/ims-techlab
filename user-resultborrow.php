@@ -246,6 +246,8 @@ $result = $stmt->get_result();
 .show {
     display: flex;
 }
+
+
     </style>
 
 </head>
@@ -270,11 +272,10 @@ $result = $stmt->get_result();
     </div>
 <!-- Header box container -->
 <div class="header-box">
-        <div class="header-box-content">
+    <div class="header-box-content">
         <!-- Navigation links -->
         <!-- Navigation links -->
-       <!-- Navigation links -->
-       <div class="dropdown">
+        <div class="dropdown">
         <button class="dropdown-btn">Hello, <?php echo htmlspecialchars($_SESSION["username"]); ?>!
 </button>
         <ul class="nav-links dropdown-content">
@@ -289,8 +290,8 @@ $result = $stmt->get_result();
             <?php endif; ?>
         </ul>
         </div>
-        </div>
     </div>
+</div>
     <div class="center-container">
 
     <div class="container">
@@ -307,45 +308,52 @@ $result = $stmt->get_result();
     <div class="table-container">
 
     <table>
-        <thead>
-            <tr>
-                <th>Item Name</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Borrow Date</th>
-                <th>Return Date</th>
-                <th>Decided By</th>
-                <th>Actions</th>
+    <thead>
+        <tr>
+            <th>Item Name</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Borrow Date</th>
+            <th>Return Date</th>
+            <th>Decided By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php if ($result->num_rows > 0): ?>
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <tr id="row-<?php echo $row['borrow_id']; ?>">
+                <td><?php echo htmlspecialchars($row['item_name']); ?></td>
+                <td><?php echo htmlspecialchars($row['category']); ?></td>
+                <td><?php echo htmlspecialchars($row['status']); ?></td>
+                <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
+                <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
+                <td><?php echo htmlspecialchars($row['decided_by']); ?></td>
+                <td>
+                    <?php if ($row['status'] === 'Approved'): ?>
+                        <form action="user-returnrequest.php" method="POST">
+                            <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
+                            <button type="submit">Return</button>
+                        </form>
+                    <?php elseif ($row['status'] === 'Not Approved'): ?>
+                        <form action="user-cancelrequest.php" method="POST">
+                            <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
+                            <button type="submit">Cancel</button>
+                        </form>
+                    <?php elseif ($row['status'] === 'Returned'): ?>
+                        <button type="button" onclick="markAsDone(<?php echo $row['borrow_id']; ?>)">Done</button>
+                    <?php endif; ?>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = $result->fetch_assoc()): ?>
-                <tr id="row-<?php echo $row['borrow_id']; ?>">
-                    <td><?php echo htmlspecialchars($row['item_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['category']); ?></td>
-                    <td><?php echo htmlspecialchars($row['status']); ?></td>
-                    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['borrow_date']))); ?></td>
-                    <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($row['duration']))); ?></td>
-                    <td><?php echo htmlspecialchars($row['decided_by']); ?></td>
-                    <td>
-                        <?php if ($row['status'] === 'Approved'): ?>
-                            <form action="user-returnrequest.php" method="POST">
-                                <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
-                                <button type="submit">Return</button>
-                            </form>
-                        <?php elseif ($row['status'] === 'Not Approved'): ?>
-                            <form action="user-cancelrequest.php" method="POST">
-                                <input type="hidden" name="borrow_id" value="<?php echo $row['borrow_id']; ?>">
-                                <button type="submit">Cancel</button>
-                            </form>
-                        <?php elseif ($row['status'] === 'Returned'): ?>
-                            <button type="button" onclick="markAsDone(<?php echo $row['borrow_id']; ?>)">Done</button>
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
+        <?php endwhile; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="7">No pending borrow requests</td>
+        </tr>
+    <?php endif; ?>
+    </tbody>
+</table>
+
     </div>
 
     <!-- Modal -->
@@ -440,26 +448,6 @@ $result = $stmt->get_result();
         document.getElementById('row-' + borrowId).style.display = 'none';
     }
 
-    // Get the modal
-var modal = document.getElementById("reminderModal");
-
-// Get the <span> element that closes the modal
-var span = document.getElementsByClassName("close")[0];
-
-// When the user clicks on the notification count, open the modal
-document.getElementById("notification-count").onclick = function() {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            var reminderContent = this.responseText;
-            document.getElementById("reminder-content").innerHTML = reminderContent;
-            modal.style.display = "block";
-        }
-    };
-    xhttp.open("GET", "get_reminder_content.php", true);
-    xhttp.send();
-}
-
 
 // Inside the modal-content div, replace the placeholder with actual reminders
 
@@ -470,6 +458,7 @@ window.onclick = function(event) {
         modal.style.display = "none";
     }
 }
+
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const dropdownBtn = document.querySelector('.dropdown-btn');
